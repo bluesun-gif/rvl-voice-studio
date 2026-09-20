@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relief Validation Limited | Real-Time Voice Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060b18;
+      --card-bg: rgba(12, 20, 42, 0.92);
+      --card-border: rgba(46, 173, 140, 0.28);
+      --rvl-teal: #2EAD8C;
+      --rvl-teal-glow: rgba(46, 173, 140, 0.4);
+      --rvl-navy: #1A3B8C;
+      --rvl-emerald: #10B981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --accent-blue: #38bdf8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(46, 173, 140, 0.18) 0px, transparent 45%),
+        radial-gradient(at 100% 100%, rgba(26, 59, 140, 0.25) 0px, transparent 50%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(14px);
+      background: rgba(6, 11, 24, 0.88);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--rvl-navy), var(--rvl-teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--rvl-teal-glow);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .brand-logo-badge svg {
+      width: 22px;
+      height: 22px;
+      fill: #ffffff;
+    }
+
+    .brand-titles {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span.tag {
+      background: rgba(46, 173, 140, 0.18);
+      color: var(--rvl-teal);
+      border: 1px solid rgba(46, 173, 140, 0.35);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .badge-teal {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.3);
+      background: rgba(46, 173, 140, 0.12);
+    }
+
+    .badge-latency {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.08);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 18px;
+      padding: 18px 24px;
+      max-width: 1540px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    select, input[type="text"], textarea {
+      background: rgba(8, 14, 30, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 8px 11px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select:focus, input[type="text"]:focus, textarea:focus {
+      border-color: var(--rvl-teal);
+      box-shadow: 0 0 10px var(--rvl-teal-glow);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.4;
+      font-size: 11.5px;
+    }
+
+    /* Prominent Language Bar */
+    .language-toggle-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-lang {
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-lang.active {
+      background: linear-gradient(135deg, rgba(46, 173, 140, 0.3), rgba(16, 185, 129, 0.35));
+      border: 1px solid var(--rvl-teal);
+      color: #ffffff;
+      box-shadow: 0 0 12px var(--rvl-teal-glow);
+    }
+
+    /* Stage / Call Window */
+    .stage {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 620px;
+      gap: 16px;
+    }
+
+    .stage-top-bar {
+      width: 100%;
+      background: linear-gradient(90deg, rgba(26, 59, 140, 0.35), rgba(46, 173, 140, 0.2));
+      border: 1px solid rgba(46, 173, 140, 0.25);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stage-top-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .turn-state-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+
+    .turn-listening {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .turn-thinking {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid #f59e0b;
+      color: #fbbf24;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .turn-speaking {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid #38bdf8;
+      color: #7dd3fc;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+
+    .turn-muted {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+
+    .turn-idle {
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid #64748b;
+      color: #cbd5e1;
+    }
+
+    /* Central Call Stage */
+    .call-core-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin: 10px 0;
+    }
+
+    .visualizer-wrapper {
+      width: 170px;
+      height: 170px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+
+    .ring-1 { width: 130px; height: 130px; border-color: rgba(46, 173, 140, 0.25); }
+    .ring-2 { width: 160px; height: 160px; border-color: rgba(26, 59, 140, 0.2); }
+    .ring-3 { width: 190px; height: 190px; border-color: rgba(46, 173, 140, 0.12); }
+
+    .calling .ring-1 {
+      animation: ripple 2s infinite ease-out;
+      border-color: rgba(46, 173, 140, 0.65);
+    }
+    .calling .ring-2 {
+      animation: ripple 2s infinite ease-out 0.6s;
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+    .calling .ring-3 {
+      animation: ripple 2s infinite ease-out 1.2s;
+      border-color: rgba(46, 173, 140, 0.25);
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    .avatar-btn {
+      width: 105px;
+      height: 105px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--rvl-navy), var(--rvl-teal));
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 35px var(--rvl-teal-glow);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      z-index: 5;
+      transition: all 0.25s ease;
+    }
+
+    .avatar-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 45px var(--rvl-teal-glow);
+    }
+
+    .avatar-btn.in-call {
+      background: linear-gradient(135deg, #991b1b, #ef4444);
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.45);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .avatar-btn svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+
+    /* Live Voice Monitor Card (Big and crystal clear!) */
+    .speech-monitor-card {
+      width: 100%;
+      background: rgba(8, 14, 32, 0.88);
+      border: 2px solid rgba(46, 173, 140, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .monitor-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .monitor-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-vu-container {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 16px;
+    }
+
+    .vu-bar {
+      width: 3px;
+      height: 4px;
+      background: #334155;
+      border-radius: 2px;
+      transition: height 0.08s ease, background 0.1s ease;
+    }
+
+    .vu-bar.active {
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .monitor-speech-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      min-height: 44px;
+      line-height: 1.45;
+      display: flex;
+      align-items: center;
+    }
+
+    .monitor-speech-text.empty {
+      color: #64748b;
+      font-style: italic;
+      font-size: 13.5px;
+      font-weight: 400;
+    }
+
+    .monitor-speech-text.hearing {
+      color: #38bdf8;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Transcript Box */
+    .transcript-box {
+      width: 100%;
+      height: 200px;
+      background: rgba(5, 10, 22, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .transcript-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-width: 88%;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .transcript-msg.user { align-self: flex-end; }
+    .transcript-msg.agent { align-self: flex-start; }
+
+    .transcript-sender {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .sender-user { color: #38bdf8; }
+    .sender-agent { color: var(--rvl-teal); }
+    .sender-system { color: #94a3b8; }
+
+    .transcript-bubble {
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    .bubble-user {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #f1f5f9;
+      border-bottom-right-radius: 2px;
+    }
+
+    .bubble-agent {
+      background: rgba(46, 173, 140, 0.12);
+      border: 1px solid rgba(46, 173, 140, 0.28);
+      color: #f8fafc;
+      border-bottom-left-radius: 2px;
+    }
+
+    .bubble-system {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+      font-size: 11.5px;
+    }
+
+    /* Fast Action Controls */
+    .controls-strip {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-top: 6px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-fast-done {
+      background: linear-gradient(135deg, rgba(46, 173, 140, 0.3), rgba(16, 185, 129, 0.45));
+      border: 1.5px solid var(--rvl-teal);
+      color: #ffffff;
+      padding: 9px 18px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .btn-fast-done:hover {
+      background: linear-gradient(135deg, rgba(46, 173, 140, 0.45), rgba(16, 185, 129, 0.6));
+      box-shadow: 0 0 16px var(--rvl-teal-glow);
+    }
+
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 12px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-tool:hover {
+      background: rgba(46, 173, 140, 0.12);
+      border-color: var(--rvl-teal);
+      color: #ffffff;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #0d152a;
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      width: 90%;
+      max-width: 680px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      padding: 22px;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-content {
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo-badge">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm-1 16l-4-4 1.41-1.41L11 15.17l6.59-6.59L19 10l-8 8z"/>
+        </svg>
+      </div>
+      <div class="brand-titles">
+        <div class="brand-title">
+          Relief Validation Limited
+          <span class="tag">Licensed CA</span>
+          <span class="tag" style="background: rgba(26, 59, 140, 0.35); color: #60a5fa; border-color: rgba(96, 165, 250, 0.3);">Deepon Group</span>
+        </div>
+        <div class="brand-subtitle">Official AI Voice Assistant Studio | Bangla & English (Echo-Proof Turn-Taking)</div>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <div class="badge badge-teal">
+        ICT Act 2006 (CCA)
+      </div>
+      <div class="badge badge-latency" id="headerLatency">
+        ⚡ Latency: Ready
+      </div>
+      <button class="btn-tool" id="openKbBtn">
+        📖 Knowledge Base
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Configuration Panel -->
+    <aside class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>Voice Settings</span>
+        </div>
+        <span style="font-size: 11px; color: var(--rvl-teal); font-weight: 700;">PROD READY</span>
+      </div>
+
+      <!-- Prominent 1-Click Language Switcher -->
+      <div class="field-group">
+        <label>Active Speech Language (Click to Toggle)</label>
+        <div class="language-toggle-bar">
+          <button class="btn-lang active" id="langBtnBn" data-lang="bn-BD">
+            🇧🇩 বাংলা (Dhaka)
+          </button>
+          <button class="btn-lang" id="langBtnEn" data-lang="en-US">
+            🇬🇧 English
+          </button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="agentProfile">Company Voice Persona</label>
+        <select id="agentProfile">
+          <option value="rvl_corporate" selected>🏢 Relief Validation Limited (Official Corporate & Inquiries)</option>
+          <option value="vds_banking">🏦 VDS & Banking Security Specialist (Solvency & Loans)</option>
+          <option value="oneid_wallet">📱 OneID Wallet Helpdesk (Students & Degrees)</option>
+          <option value="dgepay_merchant">💳 DGePay & FinTech Advisor (Merchants & Tally Khata)</option>
+          <option value="custom">✏️ Custom Client Demo (White-Label for Others)</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="modelSelect">LLM Engine (Speed & Brain)</label>
+        <select id="modelSelect">
+          <option value="groq/qwen3.8-27b" selected>⚡ Groq Qwen 3.8 27B (~700ms Ultra-Fast LPU)</option>
+          <option value="groq/gpt-oss-20b">⚡ Groq GPT-OSS 20B (~600ms Blazing Fast)</option>
+          <option value="local/lm-studio">🖥️ Local LM Studio (Offline Zero Network - RTX 4050)</option>
+          <option value="gemini-2.5-flash">🌐 Google Gemini 2.5 Flash (Cloud Fallback)</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="voiceSelect">Spoken Voice (TTS)</label>
+        <select id="voiceSelect">
+          <option value="bn-BD-NabanitaNeural" selected>Nabanita (Bangla Dhaka Female - Natural)</option>
+          <option value="bn-BD-PradeepNeural">Pradeep (Bangla Dhaka Male - Professional)</option>
+          <option value="en-IN-NeerjaNeural">Neerja (South Asian English - Bilingual)</option>
+          <option value="en-US-JennyNeural">Jenny (US English Female - Clear)</option>
+          <option value="en-US-GuyNeural">Guy (US English Male - Corporate)</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label for="systemPrompt">Active System Persona</label>
+        <textarea id="systemPrompt"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="greetingText">Opening Spoken Greeting</label>
+        <input type="text" id="greetingText" value="রিলিফ ভ্যালিডেশন লিমিটেডে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সহায়তা করতে পারি?" />
+      </div>
+    </aside>
+
+    <!-- Right Call Interface -->
+    <section class="panel stage">
+      
+      <div class="stage-top-bar">
+        <div class="stage-top-left">
+          <span class="turn-state-badge turn-idle" id="turnStateBadge">
+            ⚪ Ready to Call
+          </span>
+          <span id="activeLangChip" style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;">
+            Language: বাংলা (bn-BD)
+          </span>
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--rvl-teal);" id="callTimer">
+          00:00
+        </div>
+      </div>
+
+      <div class="call-core-container">
+        <div class="visualizer-wrapper" id="visWrapper">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <button class="avatar-btn" id="callBtn" title="Click to start call">
+            <svg id="callIcon" viewBox="0 0 24 24">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            <span id="callBtnLabel" style="font-size: 11px; font-weight: 800; letter-spacing: 0.05em;">START CALL</span>
+          </button>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted);">
+          Tap button or press <kbd style="background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 4px; font-family: 'JetBrains Mono', monospace;">SPACEBAR</kbd> when finished talking
+        </div>
+      </div>
+
+      <!-- Live Speech Monitor Card (Crystal-Clear Feedback) -->
+      <div class="speech-monitor-card">
+        <div class="monitor-top">
+          <div class="monitor-title" id="monitorStatus">
+            🎙️ Mic Status: Offline
+          </div>
+          <!-- Real-Time VU Meter Bars -->
+          <div class="live-vu-container" id="vuContainer">
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+            <div class="vu-bar"></div>
+          </div>
+        </div>
+        
+        <div class="monitor-speech-text empty" id="monitorSpeech">
+          (Click "START CALL" and speak in your chosen language...)
+        </div>
+      </div>
+
+      <!-- Live Transcript Stream -->
+      <div class="transcript-box" id="transcriptBox">
+        <div class="transcript-msg agent">
+          <span class="transcript-sender sender-system">System Ready</span>
+          <div class="transcript-bubble bubble-system">
+            Relief Validation Limited AI Voice Studio is ready. Select your language (বাংলা / English) and click 'START CALL'.
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Fast Action Controls -->
+      <div class="controls-strip">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-action" id="clearTranscriptBtn">Clear Log</button>
+          <button class="btn-action" id="muteBtn">🎤 Mute Mic</button>
+        </div>
+
+        <button class="btn-action btn-fast-done" id="doneSpeakingBtn" title="Instant turn response">
+          ⚡ Done Speaking (Spacebar)
+        </button>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Knowledge Base Modal -->
+  <div class="modal-overlay" id="kbModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Relief Validation Limited — Embedded Knowledge Base</div>
+        <button class="modal-close" id="closeKbBtn">&times;</button>
+      </div>
+      <div class="modal-content" id="kbContent">Loading knowledge base...</div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let inCall = false;
+    let isSpeaking = false;
+    let isMuted = false;
+    let currentLanguage = "bn-BD"; // Default to Bangla!
+    let callTimerInterval = null;
+    let callStartTime = 0;
+    let recognition = null;
+    let chatHistory = [];
+    let audioPlayer = new Audio();
+    let currentInterim = "";
+    let autoSilenceTimer = null;
+    let lastSentText = "";
+    let audioCtx = null;
+    let analyser = null;
+    let micStream = null;
+    let animFrame = null;
+
+    // Elements
+    const callBtn = document.getElementById("callBtn");
+    const callBtnLabel = document.getElementById("callBtnLabel");
+    const turnStateBadge = document.getElementById("turnStateBadge");
+    const activeLangChip = document.getElementById("activeLangChip");
+    const callTimer = document.getElementById("callTimer");
+    const visWrapper = document.getElementById("visWrapper");
+    const transcriptBox = document.getElementById("transcriptBox");
+    const monitorStatus = document.getElementById("monitorStatus");
+    const monitorSpeech = document.getElementById("monitorSpeech");
+    const agentProfile = document.getElementById("agentProfile");
+    const modelSelect = document.getElementById("modelSelect");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const systemPrompt = document.getElementById("systemPrompt");
+    const greetingText = document.getElementById("greetingText");
+    const headerLatency = document.getElementById("headerLatency");
+    const doneSpeakingBtn = document.getElementById("doneSpeakingBtn");
+    const muteBtn = document.getElementById("muteBtn");
+    const clearTranscriptBtn = document.getElementById("clearTranscriptBtn");
+    const langBtnBn = document.getElementById("langBtnBn");
+    const langBtnEn = document.getElementById("langBtnEn");
+    const vuBars = document.querySelectorAll(".vu-bar");
+    const kbModal = document.getElementById("kbModal");
+    const openKbBtn = document.getElementById("openKbBtn");
+    const closeKbBtn = document.getElementById("closeKbBtn");
+    const kbContent = document.getElementById("kbContent");
+
+    const PROMPTS = {
+      rvl_corporate: {
+        bn: {
+          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. The caller is speaking in Bangla. Reply strictly in polite, natural Dhaka Bangla in 1 to 2 spoken sentences so the caller can respond naturally. Never output markdown or internal thoughts.",
+          greeting: "রিলিফ ভ্যালিডেশন লিমিটেডে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সহায়তা করতে পারি?"
+        },
+        en: {
+          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. Reply strictly in crisp, professional corporate English in 1 to 2 spoken sentences so the caller can respond. Never output markdown or thoughts.",
+          greeting: "Welcome to Relief Validation Limited, licensed Certifying Authority of Bangladesh. How may I assist you today?"
+        }
+      },
+      vds_banking: {
+        bn: {
+          system: "You are the Senior Banking Solutions Advisor for Relief Validation Limited on a voice call with a bank executive. You specialize in VDS (Visible Digital Seal) and VeriQR. Explain how VDS stops bank solvency certificate forgery, secures loan sanction letters, and enables 5-second offline verification. Reply in natural Dhaka Bangla in 1 to 2 spoken sentences.",
+          greeting: "আসসালামু আলাইকুম। রিলিফ ভ্যালিডেশনের ব্যাংকিং সিকিউরিটি ডেস্ক থেকে বলছি। ভিডিসি ডিজিটাল সিল নিয়ে কীভাবে সহায়তা করতে পারি?"
+        },
+        en: {
+          system: "You are the Senior Banking Solutions Advisor for Relief Validation Limited on a voice call with a bank executive. You specialize in VDS (Visible Digital Seal) and VeriQR. Explain how VDS stops bank solvency certificate forgery, secures loan sanction letters, and enables 5-second offline verification under the ICT Act 2006. Reply in crisp corporate English in 1 to 2 sentences.",
+          greeting: "Hello, this is Relief Validation Banking Solutions. Are you interested in securing bank statements and solvency certificates with VDS?"
+        }
+      },
+      oneid_wallet: {
+        bn: {
+          system: "You are the OneID Wallet Support Specialist from Relief Validation Limited on a voice call. You help students and citizens understand how OneID Wallet stores verified SSC, HSC, and university certificates attestation-free. Reply in warm, natural Dhaka Bangla in 1 to 2 sentences.",
+          greeting: "ওয়ান আইডি ওয়ালেটে আপনাকে স্বাগতম। আপনার সার্টিফিকেট বা ন্যাশনাল ডিজিটাল ভল্ট সংক্রান্ত কী জানতে চান?"
+        },
+        en: {
+          system: "You are the OneID Wallet Support Specialist from Relief Validation Limited on a voice call. You help students and citizens understand how OneID Wallet stores verified SSC, HSC, and university certificates attestation-free. Reply in warm corporate English in 1 to 2 sentences.",
+          greeting: "Hello! Welcome to OneID Wallet, Bangladesh's national digital credential vault. How can I help with your certificates today?"
+        }
+      },
+      dgepay_merchant: {
+        bn: {
+          system: "You are the DGePay & SME Solutions Advisor from DGePay Services Limited on a phone call. You assist retail merchants and shop owners with digital payments, stress-free transactions, and Tally Khata integration. Reply in clear, friendly Dhaka Bangla in 1 to 2 sentences.",
+          greeting: "ডিজিপে সার্ভিসেস লিমিটেডে আপনাকে স্বাগতম। আপনার ব্যবসার ডিজিটাল লেনদেন ও টালিখাতা সুবিধা নিয়ে কীভাবে সহায়তা করতে পারি?"
+        },
+        en: {
+          system: "You are the DGePay & SME Solutions Advisor from DGePay Services Limited on a phone call. You assist retail merchants and shop owners with digital payments, stress-free transactions, and Tally Khata integration. Reply in friendly English in 1 to 2 sentences.",
+          greeting: "Welcome to DGePay Services Limited. How can I assist you with merchant digital payments and Tally Khata solutions today?"
+        }
+      },
+      custom: {
+        bn: {
+          system: "You are a professional AI voice assistant on a live phone call. Respond in 1 to 2 spoken sentences in Dhaka Bangla. Avoid markdown.",
+          greeting: "জি, আমি শুনছি। কীভাবে আপনাকে সাহায্য করতে পারি?"
+        },
+        en: {
+          system: "You are a professional AI voice assistant on a live phone call. Respond in 1 to 2 spoken sentences in English. Avoid markdown.",
+          greeting: "Hello, I am listening. How can I assist you?"
+        }
+      }
+    };
+
+    function applyLanguage(lang) {
+      currentLanguage = lang;
+      const isBn = lang === "bn-BD";
+
+      langBtnBn.classList.toggle("active", isBn);
+      langBtnEn.classList.toggle("active", !isBn);
+      activeLangChip.textContent = isBn ? "Language: বাংলা (bn-BD)" : "Language: English (en-US)";
+
+      // Select default voice
+      voiceSelect.value = isBn ? "bn-BD-NabanitaNeural" : "en-IN-NeerjaNeural";
+
+      // Select profile prompt
+      const p = agentProfile.value;
+      const promptObj = PROMPTS[p] || PROMPTS.rvl_corporate;
+      const localized = isBn ? promptObj.bn : promptObj.en;
+      systemPrompt.value = localized.system;
+      greetingText.value = localized.greeting;
+
+      if (recognition) {
+        recognition.lang = currentLanguage;
+      }
+
+      addTranscript("system", `Language changed to: ${isBn ? "বাংলা (Dhaka)" : "English (Corporate)"}`);
+    }
+
+    langBtnBn.addEventListener("click", () => applyLanguage("bn-BD"));
+    langBtnEn.addEventListener("click", () => applyLanguage("en-US"));
+
+    agentProfile.addEventListener("change", () => {
+      applyLanguage(currentLanguage);
+      chatHistory = [];
+    });
+
+    // Initialize with Bangla
+    applyLanguage("bn-BD");
+
+    // Turn States
+    function setTurnState(state) {
+      turnStateBadge.className = "turn-state-badge";
+      if (state === "listening") {
+        turnStateBadge.classList.add("turn-listening");
+        turnStateBadge.innerHTML = '🟢 YOUR TURN TO SPEAK';
+        monitorStatus.textContent = '🎙️ Mic Active — Listening to you:';
+        monitorSpeech.className = 'monitor-speech-text empty';
+        monitorSpeech.textContent = '(Listening... speak your question now)';
+      } else if (state === "thinking") {
+        turnStateBadge.classList.add("turn-thinking");
+        turnStateBadge.innerHTML = '⚡ THINKING (LPU)...';
+        monitorStatus.textContent = '🧠 Processing your speech...';
+      } else if (state === "speaking") {
+        turnStateBadge.classList.add("turn-speaking");
+        turnStateBadge.innerHTML = '🔊 AGENT SPEAKING (MIC PAUSED)';
+        monitorStatus.textContent = '🔇 Mic Paused (Acoustic Echo Prevention)';
+        monitorSpeech.className = 'monitor-speech-text empty';
+        monitorSpeech.textContent = '(Agent is answering through speakers...)';
+      } else if (state === "muted") {
+        turnStateBadge.classList.add("turn-muted");
+        turnStateBadge.innerHTML = '🔇 MIC MUTED';
+        monitorStatus.textContent = 'Mic is muted by user';
+      } else {
+        turnStateBadge.classList.add("turn-idle");
+        turnStateBadge.innerHTML = '⚪ Ready to Call';
+        monitorStatus.textContent = '🎙️ Mic Status: Offline';
+        monitorSpeech.className = 'monitor-speech-text empty';
+        monitorSpeech.textContent = '(Click "START CALL" and speak in your chosen language...)';
+      }
+    }
+
+    // Audio VU Meter (Proves Mic is Active)
+    async function startAudioMeter() {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        const source = audioCtx.createMediaStreamSource(micStream);
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function updateVU() {
+          if (!inCall) {
+            vuBars.forEach(b => { b.style.height = "4px"; b.classList.remove("active"); });
+            return;
+          }
+          if (isSpeaking || isMuted) {
+            vuBars.forEach(b => { b.style.height = "4px"; b.classList.remove("active"); });
+            animFrame = requestAnimationFrame(updateVU);
+            return;
+          }
+
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          let avg = sum / dataArray.length;
+
+          vuBars.forEach((bar, idx) => {
+            const threshold = (idx + 1) * 7;
+            if (avg > threshold) {
+              bar.classList.add("active");
+              bar.style.height = `${Math.min(18, 4 + (avg - threshold) * 0.8)}px`;
+            } else {
+              bar.classList.remove("active");
+              bar.style.height = "4px";
+            }
+          });
+
+          animFrame = requestAnimationFrame(updateVU);
+        }
+        updateVU();
+      } catch (e) {
+        console.warn("Audio meter setup error:", e);
+      }
+    }
+
+    function stopAudioMeter() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null;
+      }
+      if (audioCtx) {
+        try { audioCtx.close(); } catch(e) {}
+        audioCtx = null;
+      }
+      vuBars.forEach(b => { b.style.height = "4px"; b.classList.remove("active"); });
+    }
+
+    // Spacebar & Manual Done
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && inCall && !isSpeaking && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        commitSpeechManually();
+      }
+    });
+
+    doneSpeakingBtn.addEventListener("click", () => {
+      commitSpeechManually();
+    });
+
+    function commitSpeechManually() {
+      if (!inCall || isSpeaking) return;
+      if (currentInterim.trim().length > 1) {
+        clearTimeout(autoSilenceTimer);
+        const text = currentInterim.trim();
+        currentInterim = "";
+        handleUserSpeech(text);
+      }
+    }
+
+    // Call Toggle
+    callBtn.addEventListener("click", () => {
+      if (!inCall) startCall();
+      else endCall();
+    });
+
+    async function startCall() {
+      inCall = true;
+      callBtn.classList.add("in-call");
+      callBtnLabel.textContent = "END CALL";
+      visWrapper.classList.add("calling");
+
+      callStartTime = Date.now();
+      callTimerInterval = setInterval(() => {
+        const sec = Math.floor((Date.now() - callStartTime) / 1000);
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        callTimer.textContent = `${m}:${s}`;
+      }, 1000);
+
+      await startAudioMeter();
+
+      // Initial spoken greeting
+      const greeting = greetingText.value.trim();
+      if (greeting) {
+        addTranscript("agent", greeting);
+        chatHistory.push({ role: "assistant", content: greeting });
+        await speakText(greeting);
+      } else {
+        setTurnState("listening");
+        startRecognitionSafely();
+      }
+    }
+
+    function endCall() {
+      inCall = false;
+      callBtn.classList.remove("in-call");
+      callBtnLabel.textContent = "START CALL";
+      visWrapper.classList.remove("calling");
+      setTurnState("idle");
+
+      clearInterval(callTimerInterval);
+      callTimer.textContent = "00:00";
+      clearTimeout(autoSilenceTimer);
+
+      stopRecognitionSafely();
+      stopAudioMeter();
+      audioPlayer.pause();
+    }
+
+    // Speech Recognition with HARDWARE ECHO-LOCK
+    function startRecognitionSafely() {
+      if (!inCall || isSpeaking || isMuted) return;
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+
+      if (!recognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+          // CRITICAL: Drop everything if agent is speaking (echo cancellation)
+          if (!inCall || isSpeaking || isMuted) return;
+
+          let interim = "";
+          let finalTranscript = "";
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interim += event.results[i][0].transcript;
+            }
+          }
+
+          const capturedText = finalTranscript || interim;
+          if (capturedText.trim()) {
+            currentInterim = capturedText.trim();
+            monitorSpeech.className = 'monitor-speech-text hearing';
+            monitorSpeech.textContent = `"${currentInterim}"`;
+
+            // Auto-VAD: When user pauses for 650ms after speaking, automatically commit!
+            clearTimeout(autoSilenceTimer);
+            autoSilenceTimer = setTimeout(() => {
+              if (inCall && !isSpeaking && currentInterim.trim().length > 1) {
+                const textToSend = currentInterim.trim();
+                currentInterim = "";
+                handleUserSpeech(textToSend);
+              }
+            }, 650);
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.warn("Speech recognition notice:", e.error);
+        };
+
+        recognition.onend = () => {
+          // Only auto-restart if we are in call AND not speaking!
+          if (inCall && !isSpeaking && !isMuted) {
+            try { recognition.start(); } catch(e) {}
+          }
+        };
+      }
+
+      recognition.lang = currentLanguage;
+      try {
+        recognition.start();
+      } catch(e) {}
+    }
+
+    function stopRecognitionSafely() {
+      if (recognition) {
+        try { recognition.abort(); } catch(e) {}
+      }
+      clearTimeout(autoSilenceTimer);
+      currentInterim = "";
+    }
+
+    async function handleUserSpeech(text) {
+      if (!text || text === lastSentText && (Date.now() - window._lastSpeechTime < 2500)) return;
+      lastSentText = text;
+      window._lastSpeechTime = Date.now();
+
+      // Immediately abort recognition so mic doesn't capture background noise
+      stopRecognitionSafely();
+      setTurnState("thinking");
+
+      addTranscript("user", text);
+      chatHistory.push({ role: "user", content: text });
+      const t0 = performance.now();
+
+      try {
+        const resp = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: modelSelect.value,
+            system_prompt: systemPrompt.value,
+            messages: chatHistory
+          })
+        });
+
+        const data = await resp.json();
+        const t1 = performance.now();
+        const totalRoundtrip = Math.round(t1 - t0);
+
+        headerLatency.textContent = `⚡ Latency: ${totalRoundtrip}ms (${data.provider})`;
+        headerLatency.style.color = totalRoundtrip < 1200 ? "#34d399" : "#38bdf8";
+
+        const reply = data.reply || (currentLanguage === "bn-BD" ? "রিলিফ ভ্যালিডেশন লিমিটেড সর্বদা আপনার সেবায় প্রস্তুত।" : "Relief Validation Limited is ready to assist you.");
+        addTranscript("agent", reply);
+        chatHistory.push({ role: "assistant", content: reply });
+
+        await speakText(reply);
+      } catch (err) {
+        console.error("Chat error:", err);
+        setTurnState("listening");
+        startRecognitionSafely();
+      }
+    }
+
+    async function speakText(text) {
+      if (!inCall) return;
+
+      // ── 1. HARD ECHO PREVENTION LOCK ─────────────────────────────────────────
+      isSpeaking = true;
+      stopRecognitionSafely(); // Mic completely turned OFF during TTS!
+      setTurnState("speaking");
+
+      try {
+        const resp = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: text,
+            voice: voiceSelect.value
+          })
+        });
+
+        if (!resp.ok) throw new Error("TTS failed");
+        const blob = await resp.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        audioPlayer.src = audioUrl;
+
+        return new Promise((resolve) => {
+          audioPlayer.onended = () => {
+            // ── 2. ACOUSTIC ECHO COOLDOWN ──────────────────────────────────────────
+            // Wait 450ms for room echo / speaker vibrations to die down before re-enabling mic!
+            setTimeout(() => {
+              if (inCall) {
+                isSpeaking = false;
+                setTurnState("listening");
+                startRecognitionSafely();
+              }
+              resolve();
+            }, 450);
+          };
+
+          audioPlayer.play().catch((e) => {
+            console.error("Audio playback error:", e);
+            setTimeout(() => {
+              if (inCall) {
+                isSpeaking = false;
+                setTurnState("listening");
+                startRecognitionSafely();
+              }
+              resolve();
+            }, 450);
+          });
+        });
+      } catch (err) {
+        console.error("TTS error:", err);
+        isSpeaking = false;
+        if (inCall) {
+          setTurnState("listening");
+          startRecognitionSafely();
+        }
+      }
+    }
+
+    function addTranscript(sender, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `transcript-msg ${sender}`;
+
+      const senderSpan = document.createElement("span");
+      senderSpan.className = `transcript-sender sender-${sender}`;
+      senderSpan.textContent = sender === "user" ? "You (Caller)" : (sender === "agent" ? "RVL AI Voice Agent" : "System");
+
+      const bubble = document.createElement("div");
+      bubble.className = `transcript-bubble bubble-${sender}`;
+      bubble.textContent = text;
+
+      msgDiv.appendChild(senderSpan);
+      msgDiv.appendChild(bubble);
+      transcriptBox.appendChild(msgDiv);
+      transcriptBox.scrollTop = transcriptBox.scrollHeight;
+    }
+
+    // Knowledge Base Modal
+    openKbBtn.addEventListener("click", async () => {
+      kbModal.style.display = "flex";
+      try {
+        const resp = await fetch("/api/config");
+        const cfg = await resp.json();
+        kbContent.textContent = cfg.knowledge_base || "Knowledge base loaded.";
+      } catch (e) {
+        kbContent.textContent = "Error loading knowledge base.";
+      }
+    });
+
+    closeKbBtn.addEventListener("click", () => { kbModal.style.display = "none"; });
+    window.addEventListener("click", (e) => { if (e.target === kbModal) kbModal.style.display = "none"; });
+
+    clearTranscriptBtn.addEventListener("click", () => {
+      transcriptBox.innerHTML = "";
+      chatHistory = [];
+    });
+
+    muteBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      muteBtn.textContent = isMuted ? "🔇 Unmute Mic" : "🎤 Mute Mic";
+      muteBtn.style.color = isMuted ? "#ef4444" : "var(--text)";
+      if (isMuted) {
+        stopRecognitionSafely();
+        setTurnState("muted");
+      } else if (inCall && !isSpeaking) {
+        setTurnState("listening");
+        startRecognitionSafely();
+      }
+    });
+  </script>
+</body>
+</html>
