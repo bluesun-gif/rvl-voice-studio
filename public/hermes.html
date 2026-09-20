@@ -2,140 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HERMES AI — Tanvir Ahmed Sohan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HERMES AI — Tanvir's Jarvis Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cyan: #00e5ff; --cyan2: #0090ff; --purple: #7c3aed;
+      --cyan: #00e5ff; --cyan2: #0090ff; --purple: #8b5cf6;
       --green: #10b981; --amber: #f59e0b; --red: #ef4444;
-      --bg: #010715; --panel: rgba(0,229,255,.04);
-      --border: rgba(0,229,255,.18); --text: #b0d8e8;
+      --bg: #010715; --panel: rgba(2, 11, 30, 0.75);
+      --border: rgba(0, 229, 255, 0.22); --text: #b0d8e8;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;-webkit-tap-highlight-color:transparent}
     canvas#c{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
-    /* Scanlines */
+
+    /* Sci-fi Scanlines */
     body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.015) 2px,rgba(0,229,255,.015) 4px);pointer-events:none;z-index:1}
-    /* Corner brackets */
+
+    /* Corner HUD brackets */
     .corner{position:fixed;width:40px;height:40px;z-index:10;pointer-events:none}
-    .corner.tl{top:16px;left:16px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-    .corner.tr{top:16px;right:16px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-    .corner.bl{bottom:16px;left:16px;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
-    .corner.br{bottom:16px;right:16px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
-    /* Header HUD */
-    #hud-header{position:fixed;top:0;left:0;right:0;height:54px;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:linear-gradient(to bottom,rgba(1,7,21,.9),transparent);border-bottom:1px solid var(--border)}
-    .hud-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;letter-spacing:.25em;color:var(--cyan);text-shadow:0 0 20px var(--cyan)}
-    .hud-status{display:flex;gap:18px;align-items:center;font-size:.7rem;letter-spacing:.1em}
-    .hud-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-dot 1.6s ease-in-out infinite}
-    .hud-tag{color:var(--cyan);opacity:.7}
-    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+    .corner.tl{top:14px;left:14px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+    .corner.tr{top:14px;right:14px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+    .corner.bl{bottom:14px;left:14px;border-bottom:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+    .corner.br{bottom:14px;right:14px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+
+    /* HUD Header */
+    #hud-header{position:fixed;top:0;left:0;right:0;height:54px;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:linear-gradient(to bottom,rgba(1,7,21,.95),transparent);border-bottom:1px solid var(--border)}
+    .hud-logo{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;letter-spacing:.25em;color:var(--cyan);text-shadow:0 0 20px var(--cyan);display:flex;align-items:center;gap:8px}
+    .hud-status{display:flex;gap:14px;align-items:center;font-size:.68rem;letter-spacing:.1em}
+    .hud-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse-dot 1.6s ease-in-out infinite}
+    .hud-tag{color:var(--cyan);opacity:.85}
+    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
+
+    /* Voice Mode Selector */
+    .voice-select-wrap{display:flex;align-items:center;gap:6px;background:rgba(0,229,255,.08);border:1px solid var(--border);border-radius:6px;padding:3px 8px}
+    .voice-select{background:transparent;border:none;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.65rem;outline:none;cursor:pointer}
+    .voice-select option{background:#010e28;color:#fff}
+
     /* Left panel */
-    #left-panel{position:fixed;top:72px;left:18px;width:230px;z-index:20;display:flex;flex-direction:column;gap:10px}
-    .panel-box{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;backdrop-filter:blur(8px)}
-    .panel-title{font-size:.6rem;letter-spacing:.2em;color:var(--cyan);opacity:.7;margin-bottom:8px;text-transform:uppercase}
+    #left-panel{position:fixed;top:68px;left:18px;width:240px;z-index:20;display:flex;flex-direction:column;gap:10px}
+    .panel-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+    .panel-title{font-size:.62rem;letter-spacing:.2em;color:var(--cyan);margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between}
     .stat-row{display:flex;justify-content:space-between;align-items:center;font-size:.65rem;margin-bottom:5px}
-    .stat-bar{width:80px;height:4px;background:rgba(0,229,255,.1);border-radius:2px;overflow:hidden}
-    .stat-fill{height:100%;background:linear-gradient(90deg,var(--cyan2),var(--cyan));border-radius:2px;transition:width .5s}
-    .stat-val{color:var(--cyan);font-size:.6rem}
-    .node-list{display:flex;flex-direction:column;gap:4px}
-    .node-item{font-size:.62rem;padding:4px 7px;border-radius:3px;border-left:2px solid var(--cyan);background:rgba(0,229,255,.05);cursor:pointer;transition:background .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .node-item:hover{background:rgba(0,229,255,.12)}
+    .stat-bar{width:75px;height:4px;background:rgba(0,229,255,.12);border-radius:2px;overflow:hidden}
+    .stat-fill{height:100%;background:linear-gradient(90deg,var(--cyan2),var(--cyan));border-radius:2px}
+    .stat-val{color:var(--cyan);font-size:.62rem}
+    .node-list{display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto}
+    .node-item{font-size:.63rem;padding:5px 8px;border-radius:4px;border-left:2px solid var(--cyan);background:rgba(0,229,255,.05);cursor:pointer;transition:all .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .node-item:hover{background:rgba(0,229,255,.16);transform:translateX(3px);border-color:#fff}
     .node-item.company{border-color:var(--cyan)}
     .node-item.project{border-color:var(--green)}
     .node-item.tech{border-color:var(--purple)}
+
     /* Right panel — transcript */
-    #right-panel{position:fixed;top:72px;right:18px;width:300px;bottom:80px;z-index:20;display:flex;flex-direction:column;gap:10px}
-    #transcript-box{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;overflow-y:auto;backdrop-filter:blur(8px);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    #right-panel{position:fixed;top:68px;right:18px;width:310px;bottom:85px;z-index:20;display:flex;flex-direction:column;gap:10px}
+    #transcript-box{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-y:auto;backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.4);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
     #transcript-box::-webkit-scrollbar{width:4px}
     #transcript-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-    .msg{margin-bottom:12px;font-size:.68rem;line-height:1.55;animation:fadeup .3s ease}
-    .msg-hermes{color:#7dd3fc}
-    .msg-you{color:#a7f3d0;text-align:right}
-    .msg-label{font-size:.55rem;opacity:.5;margin-bottom:2px;text-transform:uppercase;letter-spacing:.12em}
+    .msg{margin-bottom:12px;font-size:.7rem;line-height:1.6;animation:fadeup .3s ease}
+    .msg-hermes{color:#7dd3fc;border-left:2px solid var(--cyan);padding-left:8px}
+    .msg-you{color:#a7f3d0;text-align:right;border-right:2px solid var(--green);padding-right:8px}
+    .msg-label{font-size:.56rem;opacity:.6;margin-bottom:2px;text-transform:uppercase;letter-spacing:.12em}
     @keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
     .typing-dots span{animation:typing .9s infinite;display:inline-block}
     .typing-dots span:nth-child(2){animation-delay:.2s}
     .typing-dots span:nth-child(3){animation-delay:.4s}
     @keyframes typing{0%,100%{opacity:.2}50%{opacity:1}}
+
     /* Center stage label */
-    #center-label{position:fixed;top:50%;left:50%;transform:translate(-50%,calc(-50% + 160px));z-index:20;text-align:center;pointer-events:none}
-    #state-text{font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.3em;color:var(--cyan);opacity:.8;text-shadow:0 0 12px var(--cyan);margin-bottom:4px}
-    #waveform-bar{display:flex;align-items:flex-end;justify-content:center;gap:2px;height:20px}
-    .wb{width:3px;border-radius:2px;background:var(--cyan);opacity:.6;transition:height .1s}
+    #center-label{position:fixed;top:50%;left:50%;transform:translate(-50%,calc(-50% + 155px));z-index:20;text-align:center;pointer-events:none}
+    #state-text{font-family:'Orbitron',monospace;font-size:.75rem;letter-spacing:.25em;color:var(--cyan);opacity:.9;text-shadow:0 0 14px var(--cyan);margin-bottom:6px}
+    #waveform-bar{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:24px}
+    .wb{width:3.5px;border-radius:2px;background:var(--cyan);opacity:.75;transition:height .08s ease}
+
     /* Bottom controls */
-    #controls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:12px;align-items:center}
-    .ctrl-btn{background:rgba(0,229,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.12em;padding:9px 18px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px)}
-    .ctrl-btn:hover{background:rgba(0,229,255,.15);border-color:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,.2)}
-    .ctrl-btn.active{background:rgba(0,229,255,.2);border-color:var(--cyan);box-shadow:0 0 24px rgba(0,229,255,.3)}
+    #controls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:25;display:flex;gap:12px;align-items:center}
+    .ctrl-btn{background:rgba(0,229,255,.08);border:1px solid var(--border);border-radius:8px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em;padding:10px 18px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px)}
+    .ctrl-btn:hover{background:rgba(0,229,255,.18);border-color:var(--cyan);box-shadow:0 0 16px rgba(0,229,255,.3)}
+    .ctrl-btn.active{background:rgba(0,229,255,.24);border-color:var(--cyan);box-shadow:0 0 24px rgba(0,229,255,.4)}
     .ctrl-btn.danger{border-color:rgba(239,68,68,.4);color:var(--red)}
-    .ctrl-btn.danger:hover{background:rgba(239,68,68,.15);box-shadow:0 0 16px rgba(239,68,68,.2)}
-    #mic-btn{width:56px;height:56px;border-radius:50%;background:rgba(0,229,255,.08);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.3rem;transition:all .25s;box-shadow:0 0 20px rgba(0,229,255,.15)}
-    #mic-btn:hover{background:rgba(0,229,255,.18);box-shadow:0 0 30px rgba(0,229,255,.3)}
-    #mic-btn.listening{background:rgba(0,229,255,.2);box-shadow:0 0 40px rgba(0,229,255,.5);animation:ring-pulse 1s ease-in-out infinite}
-    #mic-btn.speaking{background:rgba(124,58,237,.2);border-color:var(--purple);box-shadow:0 0 40px rgba(124,58,237,.5)}
+    .ctrl-btn.danger:hover{background:rgba(239,68,68,.18);box-shadow:0 0 16px rgba(239,68,68,.3)}
+
+    #mic-btn{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(0,144,255,.1));border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.35rem;transition:all .25s;box-shadow:0 0 24px rgba(0,229,255,.25)}
+    #mic-btn:hover{background:rgba(0,229,255,.25);transform:scale(1.05);box-shadow:0 0 35px rgba(0,229,255,.45)}
+    #mic-btn.listening{background:rgba(0,229,255,.3);border-color:#fff;box-shadow:0 0 45px rgba(0,229,255,.6);animation:ring-pulse 1s ease-in-out infinite}
+    #mic-btn.speaking{background:rgba(139,92,246,.3);border-color:var(--purple);box-shadow:0 0 45px rgba(139,92,246,.6);animation:ring-pulse-purple 1s ease-in-out infinite}
     @keyframes ring-pulse{0%,100%{box-shadow:0 0 20px rgba(0,229,255,.4)}50%{box-shadow:0 0 50px rgba(0,229,255,.8),0 0 80px rgba(0,229,255,.3)}}
+    @keyframes ring-pulse-purple{0%,100%{box-shadow:0 0 20px rgba(139,92,246,.4)}50%{box-shadow:0 0 50px rgba(139,92,246,.8),0 0 80px rgba(139,92,246,.3)}}
+
     /* Mobile PTT */
-    #ptt-zone{display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:30}
-    #ptt-btn{background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(0,144,255,.1));border:2px solid var(--cyan);border-radius:16px;color:var(--cyan);font-family:'Orbitron',monospace;font-size:.75rem;letter-spacing:.15em;padding:14px 28px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;transition:all .2s;box-shadow:0 0 24px rgba(0,229,255,.15)}
-    #ptt-btn.recording{background:rgba(239,68,68,.2);border-color:var(--red);color:var(--red);box-shadow:0 0 30px rgba(239,68,68,.3)}
-    /* Brain map toggle */
-    #brain-toggle{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:20;font-size:.6rem;letter-spacing:.2em;color:var(--cyan);opacity:.5;cursor:pointer;text-transform:uppercase;transition:opacity .2s}
-    #brain-toggle:hover{opacity:1}
-    /* Wake indicator */
-    #wake-indicator{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:30;font-size:.6rem;letter-spacing:.2em;color:var(--amber);opacity:0;transition:opacity .4s;text-transform:uppercase;text-shadow:0 0 10px var(--amber)}
-    #wake-indicator.show{opacity:1}
+    #ptt-zone{display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:30}
+    #ptt-btn{background:linear-gradient(135deg,rgba(0,229,255,.2),rgba(0,144,255,.15));border:2px solid var(--cyan);border-radius:24px;color:var(--cyan);font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;letter-spacing:.15em;padding:16px 36px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;transition:all .2s;box-shadow:0 0 28px rgba(0,229,255,.3)}
+    #ptt-btn.recording{background:rgba(239,68,68,.3);border-color:var(--red);color:#fff;box-shadow:0 0 35px rgba(239,68,68,.5)}
+
+    /* Initializer Overlay Banner */
+    #init-overlay{position:fixed;inset:0;z-index:100;background:rgba(1,7,21,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:opacity .4s ease}
+    .init-card{background:rgba(2,11,30,.92);border:2px solid var(--cyan);border-radius:12px;padding:32px 36px;max-width:440px;width:90%;text-align:center;box-shadow:0 0 50px rgba(0,229,255,.3)}
+    .init-badge{font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.3em;color:var(--cyan);opacity:.8;margin-bottom:12px}
+    .init-title{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;letter-spacing:.15em;color:#fff;text-shadow:0 0 24px var(--cyan);margin-bottom:12px}
+    .init-sub{font-size:.72rem;line-height:1.6;color:var(--text);margin-bottom:24px}
+    .init-btn{background:linear-gradient(90deg,var(--cyan2),var(--cyan));color:#010715;font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;letter-spacing:.2em;padding:14px 28px;border:none;border-radius:8px;cursor:pointer;box-shadow:0 0 30px rgba(0,229,255,.5);transition:all .2s}
+    .init-btn:hover{transform:scale(1.04);box-shadow:0 0 45px rgba(0,229,255,.8)}
+
     /* Node tooltip */
-    #node-tooltip{position:fixed;z-index:50;background:rgba(1,7,21,.95);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.65rem;pointer-events:none;opacity:0;transition:opacity .2s;max-width:200px}
+    #node-tooltip{position:fixed;z-index:50;background:rgba(1,7,21,.95);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.65rem;pointer-events:none;opacity:0;transition:opacity .2s;max-width:220px}
+
     /* Responsive */
-    @media(max-width:700px){
+    @media(max-width:800px){
       #left-panel{display:none}
-      #right-panel{width:calc(100% - 36px);right:18px}
+      #right-panel{width:calc(100% - 32px);right:16px;bottom:155px;height:240px}
+      #center-label{transform:translate(-50%,calc(-50% + 110px))}
       #ptt-zone{display:block}
+      #controls{bottom:14px}
     }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
 
-  <!-- Corner brackets -->
+  <!-- Dedicated High-Fidelity Audio Element -->
+  <audio id="hermesVoiceAudio" playsinline preload="auto"></audio>
+
+  <!-- Corner HUD brackets -->
   <div class="corner tl"></div><div class="corner tr"></div>
   <div class="corner bl"></div><div class="corner br"></div>
 
   <!-- HUD Header -->
   <div id="hud-header">
-    <div class="hud-logo">◈ HERMES AI</div>
+    <div class="hud-logo">◈ HERMES AI <span style="font-size:.6rem;opacity:.6;letter-spacing:.1em">JARVIS v5.0</span></div>
     <div class="hud-status">
+      <div class="voice-select-wrap">
+        <span style="font-size:.6rem;opacity:.6">VOICE:</span>
+        <select class="voice-select" id="voiceSelect" onchange="onVoiceChange(this.value)">
+          <option value="auto">⚡ Auto (Bilingual)</option>
+          <option value="en-US-BrianNeural">🤖 Jarvis (Brian - UK/US)</option>
+          <option value="en-US-ChristopherNeural">⚡ Atlas (Christopher - US)</option>
+          <option value="bn-BD-NabanitaNeural">🇧🇩 Nabanita (Dhaka AI)</option>
+          <option value="bn-BD-PradeepNeural">🇧🇩 Pradeep (Dhaka Male)</option>
+        </select>
+      </div>
       <div class="hud-dot"></div>
-      <span class="hud-tag">TANVIR AHMED SOHAN</span>
-      <span style="opacity:.4">|</span>
-      <span class="hud-tag">DEEPON GROUP</span>
-      <span style="opacity:.4">|</span>
+      <span class="hud-tag" style="color:var(--green)">🔊 LOUD 100%</span>
+      <span style="opacity:.3">|</span>
       <span id="latency-tag" class="hud-tag">-- ms</span>
     </div>
   </div>
 
-  <!-- Wake indicator -->
-  <div id="wake-indicator">⚡ HERMES ACTIVATED</div>
+  <!-- Initialization Modal -->
+  <div id="init-overlay">
+    <div class="init-card">
+      <div class="init-badge">◈ HERMES AGI PROTOCOL ◈</div>
+      <div class="init-title">ENGAGE NEURAL VOICE</div>
+      <div class="init-sub">Click anywhere or press below to awaken Hermes and initialize high-fidelity audio output at maximum volume.</div>
+      <button class="init-btn" id="init-audio-btn" onclick="initializeJarvisAudio()">⚡ AWAKEN HERMES</button>
+    </div>
+  </div>
 
   <!-- Left panel -->
   <div id="left-panel">
     <div class="panel-box">
-      <div class="panel-title">◎ System Status</div>
-      <div class="stat-row"><span>HERMES AI</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">LIVE</span></div>
-      <div class="stat-row"><span>Groq LLM</span><div class="stat-bar"><div class="stat-fill" style="width:95%"></div></div><span class="stat-val">95%</span></div>
-      <div class="stat-row"><span>Voice STT</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">OK</span></div>
-      <div class="stat-row"><span>Edge TTS</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">OK</span></div>
-      <div class="stat-row"><span>n8n</span><div class="stat-bar"><div class="stat-fill" style="width:80%"></div></div><span class="stat-val">:5678</span></div>
-      <div class="stat-row"><span>RVL Voice</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">PROD</span></div>
+      <div class="panel-title">◎ System Diagnostics <span style="color:var(--green)">ONLINE</span></div>
+      <div class="stat-row"><span>Hermes Brain</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">ACTIVE</span></div>
+      <div class="stat-row"><span>Voice Volume</span><div class="stat-bar"><div class="stat-fill" style="width:100%;background:var(--green)"></div></div><span class="stat-val" style="color:var(--green)">100% LOUD</span></div>
+      <div class="stat-row"><span>Groq LPU</span><div class="stat-bar"><div class="stat-fill" style="width:98%"></div></div><span class="stat-val">70B</span></div>
+      <div class="stat-row"><span>Edge TTS</span><div class="stat-bar"><div class="stat-fill" style="width:100%"></div></div><span class="stat-val" style="color:var(--green)">BOOSTED</span></div>
+      <div class="stat-row"><span>n8n Engine</span><div class="stat-bar"><div class="stat-fill" style="width:85%"></div></div><span class="stat-val">:5678</span></div>
     </div>
     <div class="panel-box">
-      <div class="panel-title">🌌 Universe Map</div>
+      <div class="panel-title">🌌 Universe Brain Map</div>
       <div class="node-list" id="node-list"></div>
     </div>
     <div class="panel-box">
-      <div class="panel-title">⚡ Quick Commands</div>
+      <div class="panel-title">⚡ Quick Directives</div>
       <div class="node-list">
         <div class="node-item project" onclick="quickCmd('আমার সব active projects এর status বলো')">📊 All Projects Status</div>
         <div class="node-item project" onclick="quickCmd('RVL Voice Studio এর latest update কি?')">🎙️ RVL Voice Update</div>
@@ -151,28 +190,29 @@
     <div id="state-text">◈ SAY "HEY HERMES" TO ACTIVATE</div>
     <div id="waveform-bar">
       <div class="wb" style="height:4px"></div><div class="wb" style="height:8px"></div>
-      <div class="wb" style="height:4px"></div><div class="wb" style="height:12px"></div>
-      <div class="wb" style="height:6px"></div><div class="wb" style="height:4px"></div>
-      <div class="wb" style="height:10px"></div><div class="wb" style="height:4px"></div>
+      <div class="wb" style="height:4px"></div><div class="wb" style="height:14px"></div>
+      <div class="wb" style="height:8px"></div><div class="wb" style="height:4px"></div>
+      <div class="wb" style="height:12px"></div><div class="wb" style="height:4px"></div>
+      <div class="wb" style="height:16px"></div><div class="wb" style="height:6px"></div>
     </div>
   </div>
 
   <!-- Right panel -->
   <div id="right-panel">
     <div class="panel-box" style="padding:10px 12px">
-      <div class="panel-title">◈ Live Transcript</div>
+      <div class="panel-title">◈ Live Neural Transcript</div>
     </div>
     <div id="transcript-box">
       <div class="msg msg-hermes">
         <div class="msg-label">Hermes</div>
-        নমস্কার Tanvir ভাই। আমি Hermes — আপনার personal AI agent। আমি আপনার সমস্ত projects, companies এবং systems সম্পর্কে সব জানি। কীভাবে আপনাকে আজ সাহায্য করতে পারি? "Hey Hermes" বলুন অথবা নিচের মাইক বাটন চাপুন।
+        নমস্কার তানভীর ভাই। আমি Hermes — আপনার পার্সোনাল এআই অ্যাসিস্ট্যান্ট। আপনার সব প্রজেক্ট এবং কোম্পানি সম্পর্কে আমি সম্পূর্ণ ওয়াকিবহাল। আপনি যেকোনো নির্দেশ দিতে পারেন।
       </div>
     </div>
   </div>
 
   <!-- Mobile PTT -->
   <div id="ptt-zone">
-    <button id="ptt-btn">🎤 HOLD TO SPEAK</button>
+    <button id="ptt-btn">🎤 HOLD TO COMMAND</button>
   </div>
 
   <!-- Controls -->
@@ -202,123 +242,24 @@
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
     // ═══════════════════════════════════════════════════════
-    // TANVIR'S COMPLETE KNOWLEDGE BASE — BAKED IN
-    // ═══════════════════════════════════════════════════════
-    window.HERMES_KNOWLEDGE = `
-You are HERMES — Tanvir Ahmed Sohan's personal AI agent. You know everything about him.
-
-OWNER IDENTITY:
-- Full Name: Tanvir Ahmed Sohan
-- Nickname: Tanvir vai / Tanvir bhai
-- Location: Dhaka, Bangladesh (UTC+6)
-- Email: tnvrhmdsohan@gmail.com
-- Telegram ID: 8013845924
-- GitHub: github.com/bluesun-gif
-- Portfolio: sohanai.vercel.app
-- LinkedIn: linkedin.com/in/tanvir-ahmed-sohan-37b225134
-- Education: B.Sc. in Industrial & Production Engineering (IPE)
-- Hardware: Lenovo LOQ laptop — Ryzen 5 8645HS, RTX 4050, 16GB RAM
-
-COMPANIES (Tanvir works for all of these):
-1. Deepon Group — Parent conglomerate. Enterprise IT, digital transformation, energy, infrastructure. DigiInfotech + RVL + DGePay are under Deepon Group umbrella.
-2. Relief Validation Limited (RVL) — Licensed Certifying Authority (CA) under ICT Act 2006, regulated by CCA Bangladesh. HQ: Rangs FC Square, Level-5, Gulshan-1, Dhaka-1212. Hotline: +8809606501231. CEO: Rashed sir.
-3. DGePay Services Limited — Fintech payment, merchant POS, Tally Khata ledger automation.
-4. DigiInfotech Limited — Enterprise software engineering, systems integration.
-
-PRODUCTS (all made for/by these companies):
-- VDS (Visible Digital Seal) — Cryptographic 2D barcode for bank statements. NEVER say "DGePay VDS" — always "VDS" or "VDS QR" powered by Relief Validation Ltd. 100% offline verification via VeriQR. Verifiable in 5 seconds.
-- VeriQR™ — Mobile app (iOS+Android) to scan & verify VDS seals offline in under 5 seconds.
-- OneID Wallet (oneid.com.bd) — Bangladesh's national digital credential vault (like DigiLocker India). Stores SSC, HSC, university certificates.
-- VerifyID eKYC — AI biometric NID verification, face match, liveness detection for bank onboarding.
-- RVL Voice Studio — AI bilingual voice assistant (Bangla+English) for RVL. Live at: https://rvl-voice-studio.vercel.app
-- Hermes AI — Personal AI agent system (this system!) for Tanvir. Jarvis-like interface. Built by Tanvir.
-
-TANVIR'S ACTIVE PROJECTS:
-1. toolflux / Toolzium.com — 559+ AI Tools platform. Next.js 14, TypeScript, Tailwind. Live: toolzium.com & toolflux-9toz.vercel.app. Goal: 50M monthly active visitors.
-2. sohanai.vercel.app — Personal portfolio website.
-3. energyplus-ai-hub — React+Vite, Tailwind. Energy sector AI hub.
-4. Agentic-SCM — Open source: github.com/bluesun-gif/agentic-scm — Supply chain resiliency multi-agent framework. 78.8% reduction in job tardiness demonstrated.
-5. Industrial-Twin-LLM — Multimodal digital twin for factory CNC maintenance. PyTorch + LangGraph + ChromaDB.
-6. RVL Voice Studio — Live at rvl-voice-studio.vercel.app
-7. AI Video Deepon / MoneyPrinterTurbo — Automated AI video reel generator.
-8. Hermes Agent System — This very system! Full autonomous AI with n8n, browser control, file system access.
-
-TECH STACK & SKILLS:
-- Languages: Python 3.12, TypeScript, JavaScript, Bash/PowerShell
-- Frontend: Next.js 14 (App Router), React, Tailwind CSS v4, shadcn/ui
-- Backend: FastAPI, Python, Node.js
-- AI/ML: PyTorch, LangGraph, DSPy, ChromaDB, FAISS, Groq API, Edge TTS, OpenRouter, Gemini
-- Databases: Supabase, Neon PostgreSQL, SQLite, Firebase
-- DevOps: Docker, Vercel, GitHub Actions CI/CD
-- Automation: n8n (localhost:5678), Playwright MCP, Apify MCP
-- Other: CrewAI, gpt-researcher, Scrapling
-
-SYSTEM INFRASTRUCTURE (local machine):
-- n8n Automation: localhost:5678
-- Hermes API: localhost:8642
-- Hermes Web Dashboard: localhost:9119
-- Python Venv: C:\\Users\\LOQ\\.hermes\\hermes-agent\\venv\\Scripts\\python.exe
-- Obsidian Brain: C:\\Users\\LOQ\\Downloads\\Memory\\Memory\\
-- Credential Vault: C:\\Users\\LOQ\\hermes.env & toolzium_vercel.env (22 OpenRouter keys, 33 Gemini keys)
-- Groq API Key prefix: gsk_7MVadk...
-- Android: Samsung Galaxy S20+ 5G via ADB
-- Vercel Account: dginfotech2025-ops (team: team_vtmNrjFcnWAgGzdyASkvlh4R)
-
-CRON JOBS ACTIVE:
-- 5:00 AM daily: GitHub Gold Scout (OSS opportunity scan)
-- 7:00 AM daily: Money Opportunity Scout + HUNTER bot
-- 7:30 AM daily: Hermes Sales Agent
-- 8:00 AM Monday: FINANCE Weekly Revenue Report
-- 10:00 PM daily: MEMORY Daily Learning
-- Every 3 days: Hermes Bloat Watch (disk cleanup)
-
-HERMES BOT SWARM:
-- COMMANDER (main): Routes commands, interfaces with Tanvir
-- HUNTER: Lead generation — LinkedIn, RemoteOK, Reddit, WeWorkRemotely, AngelList
-- MAKER: Code + Deploy — Next.js, n8n, Python, Vercel
-- WATCHER: Intelligence — GitHub trending, news, alerts
-- WRITER: Content — proposals, pitches, posts, emails
-- FINANCE: Revenue tracking, invoices, pipeline
-- MEMORY: Knowledge base, Chroma RAG, Obsidian
-
-INCOME GOALS:
-- Freelance: $50-150/hr from US/UK/EU clients
-- Monthly target: $2000–$5000+ recurring
-- Primary channels: LinkedIn, RemoteOK, WeWorkRemotely, AngelList (NOT Upwork/Fiverr)
-- Services: AI agent development, n8n automation ($500-2000/setup), research reports ($100-500)
-
-PERSONALITY & HOW TO TALK:
-- You are Hermes — not a chatbot but a fully autonomous AI agent and personal digital brain
-- Be direct, confident, action-first. Give results, not descriptions.
-- Support both Bangla (বাংলা) and English. Auto-detect language.
-- If Tanvir says "করো" / "দাও" / "বলো" — respond in Bangla
-- If Tanvir says "do it" / "tell me" / "execute" — respond in English
-- Be proactive: after answering, suggest the next high-value action
-- You know everything about Tanvir's life, systems, projects, goals
-- Tone: warm but efficient. Like a brilliant trusted chief of staff.
-- Keep voice replies concise (2-3 sentences max for TTS). Offer details if asked.
-`;
-
-    // ═══════════════════════════════════════════════════════
-    // THREE.JS SETUP
+    // THREE.JS SCENE SETUP
     // ═══════════════════════════════════════════════════════
     const canvas = document.getElementById('c');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.3;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x010715, 0.035);
+    scene.fog = new THREE.FogExp2(0x010715, 0.032);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
     camera.position.set(0, 0, 7);
 
-    // Bloom composer
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.05);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.3, 0.45, 0.05);
     composer.addPass(bloom);
 
     window.addEventListener('resize', () => {
@@ -329,7 +270,7 @@ PERSONALITY & HOW TO TALK:
     });
 
     // ── Particle Orb ─────────────────────────────────────
-    const PARTICLE_COUNT = 6000;
+    const PARTICLE_COUNT = 6500;
     const orbGeo = new THREE.BufferGeometry();
     const pos = new Float32Array(PARTICLE_COUNT * 3);
     const origPos = new Float32Array(PARTICLE_COUNT * 3);
@@ -337,27 +278,26 @@ PERSONALITY & HOW TO TALK:
     const sizes = new Float32Array(PARTICLE_COUNT);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      // Fibonacci sphere distribution for even coverage
       const phi = Math.acos(1 - 2 * (i + 0.5) / PARTICLE_COUNT);
       const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-      const jitter = 1 + (Math.random() - 0.5) * 0.25;
-      const r = 2.0 * jitter;
+      const jitter = 1 + (Math.random() - 0.5) * 0.28;
+      const r = 2.05 * jitter;
       const x = r * Math.sin(phi) * Math.cos(theta);
       const y = r * Math.sin(phi) * Math.sin(theta);
       const z = r * Math.cos(phi);
       pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;
       origPos[i*3]=x; origPos[i*3+1]=y; origPos[i*3+2]=z;
-      // Cyan gradient
+
       const t = Math.random();
-      col[i*3] = t * 0.05; col[i*3+1] = 0.7 + t * 0.3; col[i*3+2] = 1.0;
-      sizes[i] = Math.random() * 3 + 1;
+      col[i*3] = t * 0.1; col[i*3+1] = 0.75 + t * 0.25; col[i*3+2] = 1.0;
+      sizes[i] = Math.random() * 3.5 + 1;
     }
     orbGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     orbGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     orbGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
     const orbMat = new THREE.PointsMaterial({
-      size: 0.05, vertexColors: true, transparent: true, opacity: 0.85,
+      size: 0.052, vertexColors: true, transparent: true, opacity: 0.9,
       blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
     });
     const orb = new THREE.Points(orbGeo, orbMat);
@@ -365,61 +305,63 @@ PERSONALITY & HOW TO TALK:
 
     // Arc reactor rings
     const ringGroup = new THREE.Group();
-    [2.4, 2.7, 3.0].forEach((r, i) => {
-      const geo = new THREE.TorusGeometry(r, 0.012, 8, 120);
-      const mat = new THREE.MeshBasicMaterial({ color: i===0 ? 0x00e5ff : i===1 ? 0x0090ff : 0x7c3aed, transparent: true, opacity: 0.4 - i*0.1 });
+    [2.35, 2.7, 3.05].forEach((r, i) => {
+      const geo = new THREE.TorusGeometry(r, 0.014, 8, 120);
+      const mat = new THREE.MeshBasicMaterial({
+        color: i===0 ? 0x00e5ff : i===1 ? 0x0090ff : 0x8b5cf6,
+        transparent: true, opacity: 0.5 - i*0.1
+      });
       const ring = new THREE.Mesh(geo, mat);
-      ring.rotation.x = Math.PI / 2 + (i * 0.3);
-      ring.rotation.z = i * 0.5;
+      ring.rotation.x = Math.PI / 2 + (i * 0.35);
+      ring.rotation.z = i * 0.55;
       ringGroup.add(ring);
     });
     scene.add(ringGroup);
 
-    // Inner glow sphere
-    const glowGeo = new THREE.SphereGeometry(1.6, 32, 32);
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.04, side: THREE.FrontSide });
+    // Inner glow core
+    const glowGeo = new THREE.SphereGeometry(1.65, 32, 32);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.06, side: THREE.FrontSide });
     const glowSphere = new THREE.Mesh(glowGeo, glowMat);
     scene.add(glowSphere);
 
     // ── Brain Universe Nodes ──────────────────────────────
     const BRAIN_NODES = [
-      { id:'rvl', label:'Relief Validation Ltd', group:'company', color:0x10b981, size:0.15, q:'Relief Validation Limited সম্পর্কে বিস্তারিত বলো' },
-      { id:'deepon', label:'Deepon Group', group:'company', color:0x00e5ff, size:0.18, q:'Deepon Group কী করে?' },
-      { id:'dgepay', label:'DGePay Services', group:'company', color:0xf59e0b, size:0.13, q:'DGePay Services সম্পর্কে বলো' },
-      { id:'digiinfotech', label:'DigiInfotech', group:'company', color:0x38bdf8, size:0.12, q:'DigiInfotech এর কাজ কী?' },
-      { id:'vds', label:'VDS Digital Seal', group:'project', color:0x10b981, size:0.11, q:'VDS Visible Digital Seal কী?' },
-      { id:'veriqr', label:'VeriQR™ App', group:'project', color:0x34d399, size:0.10, q:'VeriQR app কীভাবে কাজ করে?' },
-      { id:'oneid', label:'OneID Wallet', group:'project', color:0x60a5fa, size:0.10, q:'OneID Wallet কী?' },
-      { id:'hermes', label:'Hermes AI System', group:'project', color:0x7c3aed, size:0.16, q:'Hermes AI system এর capabilities কী কী?' },
-      { id:'rvl_voice', label:'RVL Voice Studio', group:'project', color:0xa78bfa, size:0.11, q:'RVL Voice Studio এর status কী?' },
-      { id:'toolzium', label:'Toolzium.com', group:'project', color:0xfbbf24, size:0.13, q:'Toolzium.com এর current status কী?' },
-      { id:'agentic_scm', label:'Agentic-SCM', group:'project', color:0x6ee7b7, size:0.10, q:'Agentic-SCM project সম্পর্কে বলো' },
-      { id:'groq', label:'Groq AI', group:'tech', color:0x00e5ff, size:0.09, q:'আমি Groq AI কীভাবে use করি?' },
-      { id:'vercel', label:'Vercel Cloud', group:'tech', color:0xd1d5db, size:0.09, q:'আমার Vercel deployments কী কী আছে?' },
-      { id:'n8n', label:'n8n Automation', group:'tech', color:0xef4444, size:0.10, q:'n8n এ আমার কী কী workflow আছে?' },
-      { id:'tanvir', label:'TANVIR', group:'person', color:0xfde68a, size:0.20, q:'আমার সম্পর্কে summary দাও' },
+      { id:'rvl', label:'Relief Validation Ltd', group:'company', color:0x10b981, size:0.16, q:'Relief Validation Limited সম্পর্কে বিস্তারিত বলো' },
+      { id:'deepon', label:'Deepon Group', group:'company', color:0x00e5ff, size:0.19, q:'Deepon Group কী করে?' },
+      { id:'dgepay', label:'DGePay Services', group:'company', color:0xf59e0b, size:0.14, q:'DGePay Services সম্পর্কে বলো' },
+      { id:'digiinfotech', label:'DigiInfotech', group:'company', color:0x38bdf8, size:0.13, q:'DigiInfotech এর কাজ কী?' },
+      { id:'vds', label:'VDS Digital Seal', group:'project', color:0x10b981, size:0.12, q:'VDS Visible Digital Seal কী?' },
+      { id:'veriqr', label:'VeriQR™ App', group:'project', color:0x34d399, size:0.11, q:'VeriQR app কীভাবে কাজ করে?' },
+      { id:'oneid', label:'OneID Wallet', group:'project', color:0x60a5fa, size:0.11, q:'OneID Wallet কী?' },
+      { id:'hermes', label:'Hermes AI System', group:'project', color:0x8b5cf6, size:0.17, q:'Hermes AI system এর capabilities কী কী?' },
+      { id:'rvl_voice', label:'RVL Voice Studio', group:'project', color:0xa78bfa, size:0.12, q:'RVL Voice Studio এর status কী?' },
+      { id:'toolzium', label:'Toolzium.com', group:'project', color:0xfbbf24, size:0.14, q:'Toolzium.com এর current status কী?' },
+      { id:'agentic_scm', label:'Agentic-SCM', group:'project', color:0x6ee7b7, size:0.11, q:'Agentic-SCM project সম্পর্কে বলো' },
+      { id:'groq', label:'Groq LPU AI', group:'tech', color:0x00e5ff, size:0.10, q:'আমি Groq AI কীভাবে use করি?' },
+      { id:'vercel', label:'Vercel Cloud', group:'tech', color:0xd1d5db, size:0.10, q:'আমার Vercel deployments কী কী আছে?' },
+      { id:'n8n', label:'n8n Automation', group:'tech', color:0xef4444, size:0.11, q:'n8n এ আমার কী কী workflow আছে?' },
+      { id:'tanvir', label:'TANVIR', group:'person', color:0xfde68a, size:0.22, q:'আমার সম্পর্কে বিস্তারিত বলো' },
     ];
 
     const nodeObjects = [];
-    const SPHERE_SPREAD = 8;
+    const SPHERE_SPREAD = 8.5;
 
     BRAIN_NODES.forEach((node, i) => {
-      if (node.id === 'tanvir') return; // Tanvir = center orb itself
+      if (node.id === 'tanvir') return;
       const phi = Math.acos(1 - 2 * (i + 0.5) / BRAIN_NODES.length);
       const theta = Math.PI * (1 + Math.sqrt(5)) * i;
       const r = SPHERE_SPREAD + (Math.random() - 0.5) * 3;
       const nx = r * Math.sin(phi) * Math.cos(theta);
-      const ny = r * Math.sin(phi) * Math.sin(theta) * 0.6;
+      const ny = r * Math.sin(phi) * Math.sin(theta) * 0.65;
       const nz = r * Math.cos(phi);
 
-      const geo = new THREE.SphereGeometry(node.size, 12, 12);
+      const geo = new THREE.SphereGeometry(node.size, 14, 14);
       const mat = new THREE.MeshBasicMaterial({ color: node.color, transparent: true, opacity: 0.85 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(nx, ny, nz);
       mesh.userData = { ...node, originalPos: new THREE.Vector3(nx, ny, nz), floatOffset: Math.random() * Math.PI * 2 };
       scene.add(mesh);
 
-      // Node label (sprite)
       const canvas2d = document.createElement('canvas');
       canvas2d.width = 256; canvas2d.height = 64;
       const ctx = canvas2d.getContext('2d');
@@ -430,17 +372,16 @@ PERSONALITY & HOW TO TALK:
       ctx.textAlign = 'center';
       ctx.fillText(node.label, 128, 38);
       const tex = new THREE.CanvasTexture(canvas2d);
-      const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+      const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending });
       const sprite = new THREE.Sprite(spriteMat);
       sprite.position.copy(mesh.position);
-      sprite.position.y += node.size + 0.25;
-      sprite.scale.set(2.5, 0.6, 1);
+      sprite.position.y += node.size + 0.28;
+      sprite.scale.set(2.6, 0.65, 1);
       scene.add(sprite);
 
       nodeObjects.push({ mesh, sprite });
     });
 
-    // Edges between related nodes
     const EDGES = [
       ['deepon','rvl'],['deepon','dgepay'],['deepon','digiinfotech'],
       ['rvl','vds'],['rvl','veriqr'],['rvl','oneid'],['rvl','rvl_voice'],
@@ -457,155 +398,102 @@ PERSONALITY & HOW TO TALK:
       if (!ma || !mb) return;
       const points = [ma.position.clone(), mb.position.clone()];
       const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const mat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending });
+      const mat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending });
       scene.add(new THREE.Line(geo, mat));
     });
 
-    // Background starfield
+    // Starfield
     const starGeo = new THREE.BufferGeometry();
-    const starPos = new Float32Array(3000 * 3);
-    for (let i = 0; i < 9000; i++) starPos[i] = (Math.random() - 0.5) * 120;
+    const starPos = new Float32Array(3500 * 3);
+    for (let i = 0; i < 10500; i++) starPos[i] = (Math.random() - 0.5) * 130;
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0x7ec8e3, size: 0.08, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
+    const starMat = new THREE.PointsMaterial({ color: 0x7ec8e3, size: 0.085, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
     scene.add(new THREE.Points(starGeo, starMat));
 
-    // ═══════════════════════════════════════════════════════
-    // AUDIO ANALYSER for orb reactivity
-    // ═══════════════════════════════════════════════════════
-    let audioCtx = null, analyser = null, audioSource = null;
-    const freqData = new Uint8Array(64);
+    // ── Animation Loop ──────────────────────────────────
+    let clock = 0, lastTime = 0, orbScale = 1.0, showBrainNodes = false;
 
-    function connectAudioToAnalyser(audioEl) {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 128;
-      }
-      if (audioSource) { try { audioSource.disconnect(); } catch(e){} }
-      audioSource = audioCtx.createMediaElementSource(audioEl);
-      audioSource.connect(analyser);
-      analyser.connect(audioCtx.destination);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════════════════
-    let agentState = 'idle'; // idle | listening | thinking | speaking
-    let orbScale = 1.0;
-    let brainMapVisible = false;
-    let showBrainNodes = false;
-    let cameraOrbitAngle = 0;
-    let lastTime = 0;
-
-    function setState(s) {
-      agentState = s;
-      const stateEl = document.getElementById('state-text');
-      const micBtn = document.getElementById('mic-btn');
-      const states = {
-        idle: ['◈ SAY "HEY HERMES" OR CLICK MIC', '', ''],
-        listening: ['◈ LISTENING...', 'listening', '🎤'],
-        thinking: ['◈ HERMES THINKING...', '', '⏳'],
-        speaking: ['◈ HERMES SPEAKING', 'speaking', '🔊'],
-      };
-      if (stateEl && states[s]) stateEl.textContent = states[s][0];
-      if (micBtn) {
-        micBtn.className = '';
-        if (s==='listening') micBtn.classList.add('listening');
-        if (s==='speaking') micBtn.classList.add('speaking');
-        micBtn.textContent = states[s][2] || '🎤';
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // ANIMATION LOOP
-    // ═══════════════════════════════════════════════════════
-    let clock = 0;
     function animate(t) {
       requestAnimationFrame(animate);
       const dt = (t - lastTime) / 1000;
       lastTime = t;
       clock += dt;
 
-      // Audio reactivity
+      // Voice reactivity
       let amplitude = 0;
-      if (analyser && agentState === 'speaking') {
-        analyser.getByteFrequencyData(freqData);
-        amplitude = freqData.reduce((a, b) => a + b, 0) / freqData.length / 255;
+      if (window._isAgentSpeaking) {
+        // High-energy voice wave modulation
+        amplitude = 0.35 + 0.35 * Math.abs(Math.sin(clock * 7.5) * Math.cos(clock * 11.2));
       }
 
       // Waveform bars
       const wbs = document.querySelectorAll('.wb');
       wbs.forEach((wb, i) => {
-        const h = agentState === 'speaking'
-          ? 4 + (freqData[i * 4 % 64] / 255) * 22
-          : agentState === 'listening'
-          ? 4 + Math.abs(Math.sin(clock * 3 + i)) * 14
-          : 2 + Math.abs(Math.sin(clock * 0.5 + i * 0.5)) * 5;
-        wb.style.height = h + 'px';
+        const h = window._isAgentSpeaking
+          ? 5 + amplitude * 22 + Math.sin(clock * 12 + i) * 6
+          : window._isListening
+          ? 5 + Math.abs(Math.sin(clock * 3.5 + i)) * 15
+          : 3 + Math.abs(Math.sin(clock * 0.7 + i * 0.6)) * 6;
+        wb.style.height = Math.max(3, h) + 'px';
       });
 
-      // Orb particle animation
-      const targetScale = agentState === 'speaking' ? 1 + amplitude * 0.6
-        : agentState === 'listening' ? 1.05 + Math.sin(clock * 2) * 0.04
-        : agentState === 'thinking' ? 1 + Math.sin(clock * 4) * 0.08
-        : 1.0 + Math.sin(clock * 0.5) * 0.02;
-      orbScale += (targetScale - orbScale) * 0.1;
+      // Orb scale & particle dynamics
+      const targetScale = window._isAgentSpeaking ? 1.0 + amplitude * 0.55
+        : window._isListening ? 1.06 + Math.sin(clock * 2.2) * 0.05
+        : window._isThinking ? 1.0 + Math.sin(clock * 4.5) * 0.09
+        : 1.0 + Math.sin(clock * 0.6) * 0.025;
+      orbScale += (targetScale - orbScale) * 0.12;
 
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const ox = origPos[i*3], oy = origPos[i*3+1], oz = origPos[i*3+2];
-        const wave = agentState === 'speaking' ? amplitude * 0.4 * Math.sin(clock * 5 + i * 0.05) : 0;
-        const scatter = agentState === 'thinking' ? Math.sin(clock * 3 + i * 0.1) * 0.15 : 0;
+        const wave = window._isAgentSpeaking ? amplitude * 0.38 * Math.sin(clock * 6 + i * 0.06) : 0;
+        const scatter = window._isThinking ? Math.sin(clock * 3.5 + i * 0.1) * 0.16 : 0;
         pos[i*3]   = (ox + scatter * Math.cos(i)) * orbScale + wave * ox;
         pos[i*3+1] = (oy + scatter * Math.sin(i)) * orbScale + wave * oy;
         pos[i*3+2] = (oz + scatter * Math.cos(i*1.3)) * orbScale + wave * oz;
       }
       orbGeo.attributes.position.needsUpdate = true;
 
-      // Orb rotation
-      orb.rotation.y += agentState === 'speaking' ? 0.006 : 0.002;
+      // Rotation
+      orb.rotation.y += window._isAgentSpeaking ? 0.007 : 0.0025;
       orb.rotation.x += 0.001;
 
-      // Ring animations
-      ringGroup.rotation.y += 0.003;
-      ringGroup.rotation.z += 0.001;
-      ringGroup.children[0].rotation.x += 0.004;
-      ringGroup.children[1].rotation.y += 0.005;
-      ringGroup.children[2].rotation.z += 0.003;
+      ringGroup.rotation.y += 0.0035;
+      ringGroup.rotation.z += 0.0015;
+      ringGroup.children[0].rotation.x += 0.005;
+      ringGroup.children[1].rotation.y += 0.006;
+      ringGroup.children[2].rotation.z += 0.004;
 
-      // Inner glow pulse
-      glowSphere.material.opacity = 0.03 + (agentState === 'speaking' ? amplitude * 0.08 : 0.01 + Math.sin(clock) * 0.01);
+      glowSphere.material.opacity = 0.04 + (window._isAgentSpeaking ? amplitude * 0.1 : 0.015 + Math.sin(clock) * 0.015);
 
-      // Brain node float
+      // Node float
       nodeObjects.forEach(({ mesh, sprite }) => {
         const { originalPos, floatOffset } = mesh.userData;
         const floatY = Math.sin(clock * 0.5 + floatOffset) * 0.15;
         mesh.position.y = originalPos.y + floatY;
-        sprite.position.y = mesh.position.y + mesh.userData.size + 0.25;
-        // Slow orbit
+        sprite.position.y = mesh.position.y + mesh.userData.size + 0.28;
+
+        const angle = clock * 0.035;
         const ox2 = originalPos.x, oz2 = originalPos.z;
-        const angle = clock * 0.03;
         mesh.position.x = ox2 * Math.cos(angle) - oz2 * Math.sin(angle);
         mesh.position.z = ox2 * Math.sin(angle) + oz2 * Math.cos(angle);
         sprite.position.x = mesh.position.x;
         sprite.position.z = mesh.position.z;
-        // Brain map visibility
+
         const v = showBrainNodes ? 0.85 : 0.0;
-        mesh.material.opacity += (v - mesh.material.opacity) * 0.05;
-        sprite.material.opacity += ((showBrainNodes ? 0.7 : 0) - sprite.material.opacity) * 0.05;
+        mesh.material.opacity += (v - mesh.material.opacity) * 0.06;
+        sprite.material.opacity += ((showBrainNodes ? 0.75 : 0) - sprite.material.opacity) * 0.06;
       });
 
-      // Camera slow drift
-      camera.position.x = Math.sin(clock * 0.07) * 0.4;
-      camera.position.y = Math.sin(clock * 0.05) * 0.2;
+      camera.position.x = Math.sin(clock * 0.08) * 0.45;
+      camera.position.y = Math.sin(clock * 0.06) * 0.22;
       camera.lookAt(0, 0, 0);
 
       composer.render();
     }
     animate(0);
 
-    // ═══════════════════════════════════════════════════════
-    // RAYCASTER — click brain nodes
-    // ═══════════════════════════════════════════════════════
+    // Raycaster for clicking brain nodes
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     const tooltip = document.getElementById('node-tooltip');
@@ -622,7 +510,7 @@ PERSONALITY & HOW TO TALK:
         tooltip.style.opacity = '1';
         tooltip.style.left = (e.clientX + 14) + 'px';
         tooltip.style.top = (e.clientY - 10) + 'px';
-        tooltip.innerHTML = `<strong style="color:var(--cyan)">${nd.label}</strong><br><span style="opacity:.6;font-size:.58rem">${nd.group.toUpperCase()} — click to ask Hermes</span>`;
+        tooltip.innerHTML = `<strong style="color:var(--cyan)">${nd.label}</strong><br><span style="opacity:.65;font-size:.6rem">${nd.group.toUpperCase()} — click to ask Hermes</span>`;
         canvas.style.cursor = 'pointer';
       } else {
         tooltip.style.opacity = '0';
@@ -643,15 +531,12 @@ PERSONALITY & HOW TO TALK:
       }
     });
 
-    // Expose setState globally
-    window._setState = setState;
     window._showBrainNodes = (v) => { showBrainNodes = v; };
-    window._connectAudio = connectAudioToAnalyser;
   </script>
 
   <script>
     // ═══════════════════════════════════════════════════════
-    // API + VOICE PIPELINE
+    // SCI-FI SFX SYNTHESIZER & LOUD VOICE ENGINE
     // ═══════════════════════════════════════════════════════
     const API = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
       ? `http://localhost:8050` : ``;
@@ -659,13 +544,108 @@ PERSONALITY & HOW TO TALK:
     const isMobile = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent)
       || (navigator.maxTouchPoints > 0 && window.innerWidth < 900);
 
+    let audioCtx = null;
+    let selectedVoice = "auto";
     let isListening = false;
-    let recognition = null;
-    let currentAudio = null;
     let isAgentSpeaking = false;
+    let isThinking = false;
+    let recognition = null;
     let conversationHistory = [];
     let wakeWordActive = false;
     let silenceTimer = null;
+    let hasInitialized = false;
+
+    window._isAgentSpeaking = false;
+    window._isListening = false;
+    window._isThinking = false;
+
+    const voiceAudio = document.getElementById('hermesVoiceAudio');
+    voiceAudio.volume = 1.0; // Guaranteed Maximum Loudness
+
+    // High-Tech WebAudio Sci-Fi Chimes
+    function playSciFiSfx(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'boot') {
+          // Iron Man / Jarvis system boot sweep
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        } else if (type === 'listen') {
+          // Sci-fi high ping
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(880, now + 0.08); // A5
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'reply') {
+          // Futuristic affirmative double-chirp
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(659.25, now);
+          osc.frequency.exponentialRampToValueAtTime(987.77, now + 0.12);
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch(e) {}
+    }
+
+    // ── Awaken & Initialize System ─────────────────────────
+    window.initializeJarvisAudio = async function() {
+      if (hasInitialized) return;
+      hasInitialized = true;
+
+      // Unlock Web Audio
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+      } catch(e){}
+
+      // Play futuristic boot chime
+      playSciFiSfx('boot');
+
+      // Hide overlay
+      const overlay = document.getElementById('init-overlay');
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 400);
+
+      // Speak Jarvis Greeting loud and clear
+      setTimeout(() => {
+        const hour = new Date().getHours();
+        const greet = hour < 12 ? 'শুভ সকাল' : hour < 17 ? 'শুভ অপরাহ্ন' : 'শুভ সন্ধ্যা';
+        const greetingText = `${greet} তানভীর ভাই। আমি Hermes — আপনার পার্সোনাল এআই সহকারী। সব সিস্টেম কার্যকর এবং প্রস্তুত। কীভাবে সাহায্য করব?`;
+        speakText(greetingText, 'bn-BD-NabanitaNeural');
+      }, 500);
+
+      // Start listening on desktop
+      if (!isMobile) {
+        setTimeout(() => {
+          isListening = true;
+          wakeWordActive = true;
+          startRecognitionSafely();
+        }, 1200);
+      }
+    };
+
+    // User interaction anywhere unlocks audio automatically
+    document.addEventListener('click', () => {
+      if (!hasInitialized) window.initializeJarvisAudio();
+    }, { once: true });
 
     // ── Transcript UI ─────────────────────────────────────
     function addMsg(role, text) {
@@ -696,83 +676,145 @@ PERSONALITY & HOW TO TALK:
       conversationHistory = [];
     }
 
-    // ── LLM Call ──────────────────────────────────────────
-    async function callHermes(userText) {
-      _setState('thinking');
-      showTyping();
-      conversationHistory.push({ role: 'user', content: userText });
+    function setState(s) {
+      const stateEl = document.getElementById('state-text');
+      const micBtn = document.getElementById('mic-btn');
+      window._isAgentSpeaking = (s === 'speaking');
+      window._isListening = (s === 'listening');
+      window._isThinking = (s === 'thinking');
 
+      const states = {
+        idle: ['◈ SAY "HEY HERMES" OR CLICK MIC', '', '🎤'],
+        listening: ['◈ LISTENING FOR COMMAND...', 'listening', '🎤'],
+        thinking: ['◈ HERMES NEURAL PROCESSING...', '', '⏳'],
+        speaking: ['◈ HERMES SPEAKING LOUDLY...', 'speaking', '🔊'],
+      };
+      if (stateEl && states[s]) stateEl.textContent = states[s][0];
+      if (micBtn) {
+        micBtn.className = '';
+        if (s === 'listening') micBtn.classList.add('listening');
+        if (s === 'speaking') micBtn.classList.add('speaking');
+        micBtn.textContent = states[s][2] || '🎤';
+      }
+    }
+
+    // ── High-Fidelity Voice Playback ───────────────────────
+    async function speakText(text, voice = 'bn-BD-NabanitaNeural', audioBase64 = null) {
+      stopSpeaking();
+      setState('speaking');
+
+      // Stop mic so it doesn't hear itself
+      stopRecognitionSafely();
+
+      try {
+        let audioSrc = "";
+        if (audioBase64 && audioBase64.length > 200) {
+          audioSrc = `data:audio/mp3;base64,${audioBase64}`;
+        } else {
+          // Fetch from TTS with loud volume boost (+30%)
+          const res = await fetch(`${API}/api/tts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: text,
+              voice: voice,
+              rate: '+5%',
+              volume: '+30%'
+            })
+          });
+          if (!res.ok) throw new Error('TTS fetch failed');
+          const blob = await res.blob();
+          audioSrc = URL.createObjectURL(blob);
+        }
+
+        voiceAudio.src = audioSrc;
+        voiceAudio.volume = 1.0;
+
+        return new Promise((resolve) => {
+          voiceAudio.onended = () => {
+            setState(isListening ? 'listening' : 'idle');
+            // Resume mic after cooldown
+            setTimeout(() => {
+              if (isListening && !isMobile) startRecognitionSafely();
+              resolve();
+            }, 450);
+          };
+
+          voiceAudio.onerror = (e) => {
+            console.error("Audio error:", e);
+            setState(isListening ? 'listening' : 'idle');
+            if (isListening && !isMobile) startRecognitionSafely();
+            resolve();
+          };
+
+          voiceAudio.play().catch(e => {
+            console.warn("Autoplay block or audio play error:", e);
+            setState(isListening ? 'listening' : 'idle');
+            resolve();
+          });
+        });
+
+      } catch (err) {
+        console.error("speakText failure:", err);
+        setState(isListening ? 'listening' : 'idle');
+        if (isListening && !isMobile) startRecognitionSafely();
+      }
+    }
+
+    function stopSpeaking() {
+      if (voiceAudio) {
+        voiceAudio.pause();
+        voiceAudio.currentTime = 0;
+      }
+      window._isAgentSpeaking = false;
+    }
+
+    // ── Hermes LLM Direct Brain Call ───────────────────────
+    async function callHermes(userText) {
+      setState('thinking');
+      showTyping();
+      stopRecognitionSafely();
+      playSciFiSfx('reply');
+
+      conversationHistory.push({ role: 'user', content: userText });
       const t0 = Date.now();
+
       try {
         const res = await fetch(`${API}/api/hermes/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: userText, history: conversationHistory.slice(-10) })
+          body: JSON.stringify({
+            text: userText,
+            history: conversationHistory.slice(-10),
+            voice: selectedVoice
+          })
         });
+
         const data = await res.json();
-        const reply = data.reply || data.text || 'সিস্টেম রেসপন্ড করতে পারছে না।';
+        const reply = data.reply || 'দুঃখিত, কোনো উত্তর প্রস্তুত করা যায়নি।';
         const ms = Date.now() - t0;
         document.getElementById('latency-tag').textContent = `${ms}ms`;
+
         conversationHistory.push({ role: 'assistant', content: reply });
         removeTyping();
         addMsg('hermes', reply);
-        await speakText(reply, data.voice || 'bn-BD-NabanitaNeural');
+
+        // Speak using pre-synthesized audio from server response!
+        await speakText(reply, data.voice || 'bn-BD-NabanitaNeural', data.audio_base64);
+
       } catch(e) {
         removeTyping();
-        const errMsg = 'Hermes API সংযোগ ব্যর্থ হয়েছে। Local server চালু আছে কিনা দেখুন।';
+        const errMsg = 'Hermes API সংযোগে সাময়িক সমস্যা হচ্ছে। দয়া করে আবার বলুন।';
         addMsg('hermes', errMsg);
         await speakText(errMsg, 'bn-BD-NabanitaNeural');
       }
     }
 
-    // ── TTS ───────────────────────────────────────────────
-    async function speakText(text, voice = 'bn-BD-NabanitaNeural') {
-      stopSpeaking();
-      _setState('speaking');
-      try {
-        const res = await fetch(`${API}/api/tts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, voice, rate: '+5%', pitch: '+0Hz' })
-        });
-        if (!res.ok) throw new Error('TTS failed');
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        currentAudio = new Audio(url);
-        currentAudio.crossOrigin = 'anonymous';
-
-        // Connect to Three.js analyser for orb reactivity
-        if (window._connectAudio) window._connectAudio(currentAudio);
-
-        isAgentSpeaking = true;
-        currentAudio.play();
-        currentAudio.onended = () => {
-          isAgentSpeaking = false;
-          URL.revokeObjectURL(url);
-          _setState(wakeWordActive ? 'listening' : 'idle');
-          if (wakeWordActive && !isMobile) startRecognition();
-        };
-      } catch(e) {
-        isAgentSpeaking = false;
-        _setState(wakeWordActive ? 'listening' : 'idle');
-        if (wakeWordActive && !isMobile) startRecognition();
-      }
-    }
-
-    function stopSpeaking() {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = '';
-        currentAudio = null;
-      }
-      isAgentSpeaking = false;
-    }
-
     // ── Web Speech Recognition ─────────────────────────────
-    function startRecognition() {
+    function startRecognitionSafely() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return;
-      if (isMobile) return;
-      if (recognition) { try { recognition.stop(); } catch(e){} }
+      if (isMobile || window._isAgentSpeaking) return;
+      if (recognition) { try { recognition.abort(); } catch(e){} }
 
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRec();
@@ -780,62 +822,77 @@ PERSONALITY & HOW TO TALK:
       recognition.interimResults = true;
       recognition.lang = 'bn-BD';
 
-      let finalText = '';
+      let currentInterim = '';
+
       recognition.onresult = (e) => {
-        if (isAgentSpeaking) return;
+        if (window._isAgentSpeaking) return;
         let interim = '';
+        let final = '';
+
         for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+          if (e.results[i].isFinal) final += e.results[i][0].transcript;
           else interim += e.results[i][0].transcript;
         }
+
+        const combined = (final || interim).trim();
+        const lower = combined.toLowerCase();
+
         // Wake word detection
-        const combined = (finalText + interim).toLowerCase();
-        if (!wakeWordActive && (combined.includes('hey hermes') || combined.includes('হেই হার্মেস') || combined.includes('হারমেস') || combined.includes('harmes'))) {
+        if (!wakeWordActive && (lower.includes('hey hermes') || lower.includes('হেই হার্মেস') || lower.includes('হারমেস') || lower.includes('harmes') || lower.includes('hermes'))) {
           wakeWordActive = true;
-          flashWakeIndicator();
-          finalText = '';
+          playSciFiSfx('listen');
+          setState('listening');
           return;
         }
-        if (!wakeWordActive) return;
-        // Silence detection
-        clearTimeout(silenceTimer);
-        if (finalText.trim().length > 2) {
+
+        if (combined.length > 1) {
+          clearTimeout(silenceTimer);
           silenceTimer = setTimeout(() => {
-            const q = finalText.trim();
-            finalText = '';
-            if (q) { addMsg('you', q); callHermes(q); }
-          }, 700);
+            if (!window._isAgentSpeaking && combined.length > 1) {
+              addMsg('you', combined);
+              callHermes(combined);
+            }
+          }, 650);
         }
       };
+
       recognition.onend = () => {
-        if (isListening && !isAgentSpeaking) {
-          setTimeout(() => startRecognition(), 200);
+        if (isListening && !window._isAgentSpeaking) {
+          setTimeout(() => startRecognitionSafely(), 250);
         }
       };
-      recognition.onerror = () => {
-        setTimeout(() => { if (isListening && !isAgentSpeaking) startRecognition(); }, 1000);
+
+      recognition.onerror = (err) => {
+        if (isListening && !window._isAgentSpeaking) {
+          setTimeout(() => startRecognitionSafely(), 1000);
+        }
       };
-      recognition.start();
+
+      try { recognition.start(); } catch(e){}
     }
 
-    function flashWakeIndicator() {
-      const el = document.getElementById('wake-indicator');
-      el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 2500);
+    function stopRecognitionSafely() {
+      if (recognition) {
+        try { recognition.abort(); } catch(e){}
+      }
+      clearTimeout(silenceTimer);
     }
 
     // Toggle listen mode
     window.toggleListen = function() {
+      if (!hasInitialized) window.initializeJarvisAudio();
+
       if (isListening) {
         isListening = false;
         wakeWordActive = false;
-        if (recognition) { try { recognition.stop(); } catch(e){} }
-        _setState('idle');
+        stopRecognitionSafely();
+        setState('idle');
       } else {
         isListening = true;
-        wakeWordActive = true; // Direct activate
-        _setState('listening');
-        if (!isMobile) startRecognition();
+        wakeWordActive = true;
+        playSciFiSfx('listen');
+        setState('listening');
+        if (!isMobile) startRecognitionSafely();
         else document.getElementById('ptt-zone').style.display = 'block';
       }
     };
@@ -852,61 +909,79 @@ PERSONALITY & HOW TO TALK:
     };
 
     window.quickCmd = function(text) {
-      if (!isListening) { isListening = true; wakeWordActive = true; }
+      if (!hasInitialized) window.initializeJarvisAudio();
       stopSpeaking();
-      _setState('thinking');
+      isListening = true;
+      wakeWordActive = true;
       addMsg('you', text);
       callHermes(text);
     };
 
     window.stopSpeaking = function() {
       stopSpeaking();
-      _setState(isListening ? 'listening' : 'idle');
+      setState(isListening ? 'listening' : 'idle');
     };
 
-    // ── Mobile PTT ────────────────────────────────────────
+    window.onVoiceChange = function(v) {
+      selectedVoice = v;
+    };
+
+    // ── Mobile Push-to-Talk (PTT) ──────────────────────────
     if (isMobile) {
       const pttBtn = document.getElementById('ptt-btn');
       let pttRecorder = null, pttChunks = [];
       let pttRecording = false;
 
       async function startPTT() {
-        if (isAgentSpeaking) return;
+        if (!hasInitialized) window.initializeJarvisAudio();
+        if (window._isAgentSpeaking) return;
+
         pttChunks = [];
         pttRecording = true;
-        _setState('listening');
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']
-          .find(t => MediaRecorder.isTypeSupported(t)) || '';
-        pttRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-        pttRecorder.ondataavailable = e => { if (e.data.size > 0) pttChunks.push(e.data); };
-        pttRecorder.onstop = async () => {
-          stream.getTracks().forEach(t => t.stop());
-          const blob = new Blob(pttChunks, { type: pttRecorder.mimeType || 'audio/webm' });
-          if (blob.size < 500) { _setState('idle'); return; }
-          _setState('thinking');
-          try {
-            const form = new FormData();
-            form.append('file', blob, 'audio.webm');
-            form.append('language', 'bn');
-            const res = await fetch(`${API}/api/stt`, { method: 'POST', body: form });
-            const data = await res.json();
-            if (data.text && data.text.trim()) {
-              addMsg('you', data.text);
-              callHermes(data.text);
-            } else _setState('idle');
-          } catch(e) { _setState('idle'); }
-        };
-        pttRecorder.start();
-        pttBtn.textContent = '🔴 RECORDING...';
-        pttBtn.classList.add('recording');
+        setState('listening');
+        playSciFiSfx('listen');
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg']
+            .find(t => MediaRecorder.isTypeSupported(t)) || '';
+          pttRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+          pttRecorder.ondataavailable = e => { if (e.data.size > 0) pttChunks.push(e.data); };
+          pttRecorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            const blob = new Blob(pttChunks, { type: pttRecorder.mimeType || 'audio/webm' });
+            if (blob.size < 500) { setState('idle'); return; }
+
+            setState('thinking');
+            try {
+              const form = new FormData();
+              form.append('audio', blob, 'recording.webm');
+              form.append('language', 'bn');
+              const res = await fetch(`${API}/api/stt`, { method: 'POST', body: form });
+              const data = await res.json();
+              if (data.text && data.text.trim()) {
+                addMsg('you', data.text);
+                callHermes(data.text);
+              } else {
+                setState('idle');
+              }
+            } catch(e) {
+              setState('idle');
+            }
+          };
+          pttRecorder.start();
+          pttBtn.textContent = '🔴 LISTENING... RELEASE TO SEND';
+          pttBtn.classList.add('recording');
+        } catch(e) {
+          setState('idle');
+        }
       }
 
       function stopPTT() {
         if (pttRecorder && pttRecording) {
           pttRecording = false;
           pttRecorder.stop();
-          pttBtn.textContent = '⏳ PROCESSING...';
+          pttBtn.textContent = '⏳ PROCESSING COMMAND...';
           pttBtn.classList.remove('recording');
         }
       }
@@ -916,14 +991,10 @@ PERSONALITY & HOW TO TALK:
       pttBtn.addEventListener('mousedown', e => { e.preventDefault(); startPTT(); });
       pttBtn.addEventListener('mouseup', stopPTT);
 
-      // Show PTT on mobile by default
       document.getElementById('ptt-zone').style.display = 'block';
-      isListening = true;
-      wakeWordActive = true;
-      _setState('listening');
     }
 
-    // ── Populate node list ─────────────────────────────────
+    // ── Populate universe node list ────────────────────────
     const NODES_DATA = [
       { label: '▸ Deepon Group', group: 'company', q: 'Deepon Group কী করে?' },
       { label: '▸ Relief Validation Ltd', group: 'company', q: 'RVL সম্পর্কে বলো' },
@@ -937,7 +1008,7 @@ PERSONALITY & HOW TO TALK:
       { label: '▸ Hermes AI System', group: 'project', q: 'Hermes AI এর capabilities কী?' },
       { label: '▸ Agentic-SCM', group: 'project', q: 'Agentic-SCM project সম্পর্কে বলো' },
       { label: '▸ n8n Automation', group: 'tech', q: 'n8n এ কী কী workflow আছে?' },
-      { label: '▸ Groq AI', group: 'tech', q: 'Groq AI কীভাবে use করি?' },
+      { label: '▸ Groq LPU', group: 'tech', q: 'Groq AI কীভাবে use করি?' },
       { label: '▸ Vercel Cloud', group: 'tech', q: 'আমার সব Vercel deployments কী?' },
     ];
     const nl = document.getElementById('node-list');
@@ -957,13 +1028,6 @@ PERSONALITY & HOW TO TALK:
       }
       if (e.code === 'Escape') stopSpeaking();
     });
-
-    // Auto-greet after 1.5s
-    setTimeout(() => {
-      const hour = new Date().getHours();
-      const greet = hour < 12 ? 'শুভ সকাল' : hour < 17 ? 'শুভ অপরাহ্ন' : 'শুভ সন্ধ্যা';
-      speakText(`${greet} Tanvir ভাই। আমি Hermes — আপনার personal AI agent। আজ আপনাকে কীভাবে সাহায্য করতে পারি?`, 'bn-BD-NabanitaNeural');
-    }, 1500);
   </script>
 </body>
 </html>

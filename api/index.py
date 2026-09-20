@@ -59,8 +59,9 @@ class ChatRequest(BaseModel):
 class TTSRequest(BaseModel):
     text: str
     voice: Optional[str] = "bn-BD-NabanitaNeural"
-    rate: Optional[str] = "+8%"
+    rate: Optional[str] = "+5%"
     pitch: Optional[str] = "+0Hz"
+    volume: Optional[str] = "+30%"
 
 class VoiceTurnRequest(BaseModel):
     text: str
@@ -78,74 +79,66 @@ def clean_reply(text: str) -> str:
     cleaned = cleaned.replace("**", "").replace("*", "").replace("##", "").replace("#", "")
     return cleaned.strip()
 
-def build_system_prompt(custom_prompt: Optional[str] = None) -> str:
-    base = custom_prompt.strip() if custom_prompt else SYSTEM_VOICE_INSTRUCTIONS.strip()
-    return f"{base}\n\n{RVL_PROMPT_KNOWLEDGE_TEXT.strip()}"
+def build_system_prompt() -> str:
+    return f"{SYSTEM_VOICE_INSTRUCTIONS}\n\n{RVL_PROMPT_KNOWLEDGE_TEXT}"
 
-async def query_groq(model_name: str, messages: list, max_tokens: int = 220) -> str:
-    groq_models = {
-        "groq/qwen3.8-27b": "qwen/qwen3.8-27b",
-        "groq/gpt-oss-20b": "openai/gpt-oss-20b",
-        "qwen/qwen3.8-27b": "qwen/qwen3.8-27b",
-        "openai/gpt-oss-20b": "openai/gpt-oss-20b"
-    }
-    target_model = groq_models.get(model_name, "qwen/qwen3.8-27b")
-
-    # Extract last user query for smart fallback
-    last_user_query = ""
-    for m in reversed(messages):
-        if isinstance(m, dict) and m.get("role") == "user":
-            last_user_query = m.get("content", "")
-            break
-        elif hasattr(m, "role") and m.role == "user":
-            last_user_query = m.content
-            break
-
-    has_bangla = bool(re.search(r'[\u0980-\u09FF]', last_user_query))
-    lang = "bn" if has_bangla else "en"
+async def query_groq(model: str, messages: list, max_tokens: int = 220) -> str:
+    if not GROQ_API_KEY:
+        print("[Groq Warning] No GROQ_API_KEY found, using local fallback knowledge", flush=True)
+        user_query = messages[-1]["content"] if messages else ""
+        return get_smart_fallback(user_query)
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     }
 
-    # Strategy 1: Candidate models cascade
-    candidate_models = [target_model, "llama-3.1-8b-instant"]
+    last_user_query = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            last_user_query = m.get("content", "")
+            break
+
+    lang = "bn" if bool(re.search(r'[\u0980-\u09FF]', last_user_query)) else "en"
+
+    candidate_models = [model]
+    if "llama-3.3-70b-versatile" not in candidate_models:
+        candidate_models.append("llama-3.3-70b-versatile")
+    if "llama-3.1-8b-instant" not in candidate_models:
+        candidate_models.append("llama-3.1-8b-instant")
+
     for cand in candidate_models:
         payload = {
             "model": cand,
             "messages": messages,
             "max_tokens": max_tokens,
-            "temperature": 0.5
+            "temperature": 0.4
         }
         try:
-            async with httpx.AsyncClient(timeout=8.0) as client:
-                resp = await client.post(GROQ_URL, json=payload, headers=headers)
+            async with httpx.AsyncClient(timeout=14.0) as client:
+                resp = await client.post(GROQ_URL, headers=headers, json=payload)
                 if resp.status_code == 200:
                     data = resp.json()
-                    raw = data["choices"][0]["message"].get("content", "")
+                    raw = data["choices"][0]["message"]["content"]
                     cleaned = clean_reply(raw)
-                    if cleaned and len(cleaned) > 10:
+                    if cleaned and len(cleaned) > 4:
                         return cleaned
         except Exception as e:
             print(f"[Groq Attempt Failed for {cand}]: {e}", flush=True)
 
-    # Strategy 2: Instant Smart Corporate Knowledge Matcher
     return get_smart_fallback(last_user_query, lang=lang)
 
-async def synthesize_speech_in_memory(text: str, voice: str, rate: str = "+8%", pitch: str = "+0Hz") -> bytes:
-    # Phonetic normalizer for Bangla pronunciation
+async def synthesize_speech_in_memory(text: str, voice: str = "bn-BD-NabanitaNeural", rate: str = "+5%", pitch: str = "+0Hz", volume: str = "+30%") -> bytes:
     spoken_text = normalize_bangla_for_tts(text)
 
-    # Auto detect Bangla
     has_bangla = bool(re.search(r'[\u0980-\u09FF]', text))
     if not voice or voice == "auto":
-        voice = "bn-BD-NabanitaNeural" if has_bangla else "en-IN-NeerjaNeural"
+        voice = "bn-BD-NabanitaNeural" if has_bangla else "en-US-BrianNeural"
     elif has_bangla and not voice.startswith("bn-"):
         voice = "bn-BD-NabanitaNeural"
 
-    communicate = edge_tts.Communicate(spoken_text, voice=voice, rate=rate, pitch=pitch)
+    communicate = edge_tts.Communicate(spoken_text, voice=voice, rate=rate, pitch=pitch, volume=volume)
     audio_buffer = bytearray()
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
@@ -358,14 +351,31 @@ async def hermes_chat(req: HermesRequest):
 
     reply = clean_reply(reply_raw)
 
-    bangla_chars = sum(1 for c in req.text if '\u0980' <= c <= '\u09FF')
-    voice = "bn-BD-NabanitaNeural" if bangla_chars > 2 else "en-US-ChristopherNeural"
+    bangla_chars = sum(1 for c in (reply + req.text) if '\u0980' <= c <= '\u09FF')
+    default_voice = "bn-BD-NabanitaNeural" if bangla_chars > 2 else "en-US-BrianNeural"
+    voice = req.voice if (req.voice and req.voice != "auto") else default_voice
+    if bangla_chars > 2 and not voice.startswith("bn-"):
+        voice = "bn-BD-NabanitaNeural"
+
+    # Pre-generate TTS audio directly in this response (instant voice playback!)
+    audio_b64 = ""
+    try:
+        audio_bytes = await synthesize_speech_in_memory(
+            text=reply,
+            voice=voice,
+            rate="+5%",
+            volume="+30%"
+        )
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+    except Exception as e:
+        print(f"[Hermes TTS Error]: {e}", flush=True)
 
     return {
         "reply": reply,
         "voice": voice,
+        "audio_base64": audio_b64,
         "latency_ms": int((time.time() - t0) * 1000),
-        "model": "hermes-qwen3"
+        "model": "hermes-llama-70b"
     }
 
 
