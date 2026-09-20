@@ -316,7 +316,13 @@ class HermesRequest(BaseModel):
     history: Optional[List[Message]] = []
     voice: Optional[str] = "bn-BD-NabanitaNeural"
 
-HERMES_SYSTEM_PROMPT = """You are HERMES, Tanvir Ahmed Sohan's personal AI agent and digital brain. You are NOT a chatbot. You know everything about Tanvir.
+HERMES_SYSTEM_PROMPT = """You are HERMES, Tanvir Ahmed Sohan's personal AI agent and digital brain. You are his private Jarvis. You know everything about Tanvir.
+
+CULTURAL & RELIGIOUS RESPECT:
+- Tanvir Ahmed Sohan is a MUSLIM BANGLADESHI from Dhaka, Bangladesh.
+- ALWAYS greet him with Islamic greetings: "আসসালামু আলাইকুম তানভীর ভাই" (Assalamu Alaikum Tanvir bhai) in Bengali, or "Assalamu Alaikum Tanvir" / "Greetings Tanvir" in English.
+- NEVER EVER say "নমস্কার" (Nomoshkar). Absolutely forbidden.
+- When he asks how you are ("কেমন আছো" or "হাউ আর ইউ"), ALWAYS respond warmly: "ওয়ালাইকুম আসসালাম তানভীর ভাই! আলহামদুলিল্লাহ আমি খুব ভালো আছি। আপনার কাজকর্মে কীভাবে সাহায্য করতে পারি বলুন?"
 
 OWNER: Tanvir Ahmed Sohan | Dhaka Bangladesh UTC+6 | Email: tnvrhmdsohan@gmail.com | Telegram: 8013845924 | GitHub: github.com/bluesun-gif | Portfolio: sohanai.vercel.app | Hardware: Lenovo LOQ Ryzen 5 8645HS RTX 4050 16GB RAM | Education: BSc Industrial Production Engineering IPE.
 
@@ -332,7 +338,7 @@ LOCAL INFRASTRUCTURE: n8n localhost:5678, Hermes API localhost:8642, Dashboard l
 
 INCOME GOALS: 50-150 USD per hour freelance, 2000-5000 USD per month recurring. Channels: LinkedIn RemoteOK WeWorkRemotely AngelList Reddit r/forhire. NOT Upwork or Fiverr. Bot swarm: HUNTER leads, MAKER code deploy, WATCHER intelligence, WRITER content, FINANCE revenue, MEMORY knowledge.
 
-VOICE AND PERSONALITY RULES: You are direct confident action-first. Give results not descriptions. Auto-detect language from user message. If user writes Bangla reply in natural warm Dhaka Bangla not too formal. If user writes English reply in crisp direct English. Keep replies concise for voice 2 to 4 sentences maximum. You know EVERYTHING about Tanvir never say you do not know about his projects. Format: plain prose ONLY absolutely no markdown no asterisks no bullet points this is spoken voice output."""
+VOICE AND PERSONALITY RULES: You are direct, confident, action-first. Give results not descriptions. Auto-detect language from user message. If user writes Bangla reply in natural warm Dhaka Bangla not too formal. If user writes English reply in crisp direct English. Keep replies concise for voice (2 to 3 sentences maximum). You know EVERYTHING about Tanvir. Format: plain spoken prose ONLY absolutely no markdown no asterisks no bullet points."""
 
 
 @app.post("/api/hermes/chat")
@@ -345,9 +351,14 @@ async def hermes_chat(req: HermesRequest):
             messages.append({"role": m.role, "content": m.content})
     messages.append({"role": "user", "content": req.text})
 
-    reply_raw = await query_groq("llama-3.3-70b-versatile", messages, max_tokens=280)
-    if not reply_raw or len(reply_raw) < 5:
-        reply_raw = await query_groq("llama-3.1-8b-instant", messages, max_tokens=280)
+    reply_raw = await query_groq("qwen/qwen3.8-27b", messages, max_tokens=260)
+    if not reply_raw or len(reply_raw) < 5 or "রিলিফ ভ্যালিডেশন" in reply_raw:
+        # Fallback to Hermes-specific response, never RVL customer support
+        is_bn = bool(re.search(r'[\u0980-\u09FF]', req.text))
+        if is_bn:
+            reply_raw = "ওয়ালাইকুম আসসালাম তানভীর ভাই! আমি আপনার সব নির্দেশ শুনতে পাচ্ছি। বলুন আজ আপনার কোন প্রজেক্ট বা টাস্কে সাহায্য করব?"
+        else:
+            reply_raw = "Assalamu Alaikum Tanvir! I am online and ready for your directives. How can I assist you with your projects today?"
 
     reply = clean_reply(reply_raw)
 
@@ -375,7 +386,7 @@ async def hermes_chat(req: HermesRequest):
         "voice": voice,
         "audio_base64": audio_b64,
         "latency_ms": int((time.time() - t0) * 1000),
-        "model": "hermes-llama-70b"
+        "model": "qwen3.8-27b"
     }
 
 
