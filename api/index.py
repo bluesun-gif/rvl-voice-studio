@@ -352,7 +352,7 @@ async def hermes_chat(req: HermesRequest):
             messages.append({"role": m.role, "content": m.content})
     messages.append({"role": "user", "content": req.text})
 
-    reply_raw = await query_groq("qwen-qwen3-32b", messages, max_tokens=280)
+    reply_raw = await query_groq("llama-3.3-70b-versatile", messages, max_tokens=280)
     if not reply_raw or len(reply_raw) < 5:
         reply_raw = await query_groq("llama-3.1-8b-instant", messages, max_tokens=280)
 
