@@ -850,6 +850,21 @@
         </button>
       </div>
 
+      <!-- MOBILE: Push-To-Talk Button (shown only on mobile where Web Speech API fails) -->
+      <div id="mobilePTTZone" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-top:4px;">
+        <div style="font-size:11px; color:var(--text-muted); text-align:center;">
+          📱 Mobile Mode — Hold the button below and speak, then release to send
+        </div>
+        <button id="pttBtn"
+          style="width:100%; padding:18px 24px; border-radius:16px; background:linear-gradient(135deg,#2EAD8C,#1A3B8C);
+                 border:none; color:white; font-size:15px; font-weight:800; letter-spacing:0.03em;
+                 cursor:pointer; user-select:none; -webkit-user-select:none;
+                 box-shadow:0 0 28px rgba(46,173,140,0.5); transition:all 0.15s; touch-action:none;">
+          🎤 Hold &amp; Speak — Release to Send
+        </button>
+        <div id="pttStatus" style="font-size:12px; color:var(--rvl-teal); font-weight:600; min-height:18px;"></div>
+      </div>
+
     </section>
   </main>
 
@@ -883,6 +898,13 @@
     let micStream = null;
     let animFrame = null;
 
+    // ── Mobile Detection & PTT State ──────────────────────────────────────────
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent) ||
+                     (navigator.maxTouchPoints > 0 && window.innerWidth < 900);
+    let pttMediaRecorder = null;
+    let pttAudioChunks = [];
+    let pttRecording = false;
+
     // Elements
     const callBtn = document.getElementById("callBtn");
     const callBtnLabel = document.getElementById("callBtnLabel");
@@ -909,6 +931,9 @@
     const openKbBtn = document.getElementById("openKbBtn");
     const closeKbBtn = document.getElementById("closeKbBtn");
     const kbContent = document.getElementById("kbContent");
+    const mobilePTTZone = document.getElementById("mobilePTTZone");
+    const pttBtn = document.getElementById("pttBtn");
+    const pttStatus = document.getElementById("pttStatus");
 
     const PROMPTS = {
       rvl_corporate: {
@@ -1137,6 +1162,14 @@
 
       await startAudioMeter();
 
+      // Show/hide mobile PTT zone
+      if (isMobile) {
+        mobilePTTZone.style.display = "flex";
+        doneSpeakingBtn.style.display = "none";
+        muteBtn.style.display = "none";
+        setupPTTButton();
+      }
+
       // Initial spoken greeting
       const greeting = greetingText.value.trim();
       if (greeting) {
@@ -1145,7 +1178,8 @@
         await speakText(greeting);
       } else {
         setTurnState("listening");
-        startRecognitionSafely();
+        if (!isMobile) startRecognitionSafely();
+        else pttStatus.textContent = "Ready — Hold button to speak";
       }
     }
 
@@ -1161,13 +1195,150 @@
       clearTimeout(autoSilenceTimer);
 
       stopRecognitionSafely();
+      stopPTTRecording();
       stopAudioMeter();
       audioPlayer.pause();
+
+      if (isMobile) {
+        mobilePTTZone.style.display = "none";
+        doneSpeakingBtn.style.display = "";
+        muteBtn.style.display = "";
+      }
     }
 
-    // Speech Recognition with HARDWARE ECHO-LOCK
+    // ── MOBILE PUSH-TO-TALK ENGINE ─────────────────────────────────────────────
+    function setupPTTButton() {
+      // Prevent duplicate listeners
+      const newBtn = pttBtn.cloneNode(true);
+      pttBtn.parentNode.replaceChild(newBtn, pttBtn);
+      const activePttBtn = document.getElementById("pttBtn");
+
+      function onPTTStart(e) {
+        e.preventDefault();
+        if (!inCall || isSpeaking) return;
+        startPTTRecording(activePttBtn);
+      }
+      function onPTTEnd(e) {
+        e.preventDefault();
+        if (pttRecording) stopPTTRecording(activePttBtn);
+      }
+
+      activePttBtn.addEventListener("touchstart", onPTTStart, { passive: false });
+      activePttBtn.addEventListener("touchend", onPTTEnd, { passive: false });
+      activePttBtn.addEventListener("touchcancel", onPTTEnd, { passive: false });
+      activePttBtn.addEventListener("mousedown", onPTTStart);
+      activePttBtn.addEventListener("mouseup", onPTTEnd);
+      activePttBtn.addEventListener("mouseleave", onPTTEnd);
+    }
+
+    async function startPTTRecording(btn) {
+      if (pttRecording) return;
+      try {
+        // Re-use existing micStream if available, else request fresh
+        let stream = micStream;
+        if (!stream) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 }
+          });
+        }
+
+        pttAudioChunks = [];
+        // Pick best supported format for Groq Whisper compatibility
+        const mimeOptions = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4", "audio/mpeg"];
+        const mimeType = mimeOptions.find(m => MediaRecorder.isTypeSupported(m)) || "";
+        pttMediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+        pttMediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) pttAudioChunks.push(e.data);
+        };
+        pttMediaRecorder.start(100); // Collect chunks every 100ms
+        pttRecording = true;
+
+        if (btn) {
+          btn.style.background = "linear-gradient(135deg,#ef4444,#b91c1c)";
+          btn.textContent = "🔴 Recording... Release to Send";
+        }
+        document.getElementById("pttStatus").textContent = "🎙️ Recording your voice...";
+        setTurnState("listening");
+        monitorStatus.textContent = "🎙️ Recording — release button when done speaking";
+      } catch (err) {
+        console.error("PTT mic error:", err);
+        document.getElementById("pttStatus").textContent = "❌ Mic error — please allow microphone access";
+        addTranscript("system", "⚠️ Microphone access denied. Please allow mic in browser settings.");
+      }
+    }
+
+    async function stopPTTRecording(btn) {
+      if (!pttRecording || !pttMediaRecorder) return;
+      pttRecording = false;
+
+      if (btn) {
+        btn.style.background = "linear-gradient(135deg,#2EAD8C,#1A3B8C)";
+        btn.textContent = "🎤 Hold & Speak — Release to Send";
+      }
+      const statusEl = document.getElementById("pttStatus");
+      statusEl.textContent = "⏳ Processing your speech...";
+      setTurnState("thinking");
+
+      return new Promise((resolve) => {
+        pttMediaRecorder.onstop = async () => {
+          if (!pttAudioChunks.length) {
+            statusEl.textContent = "⚠️ No audio captured. Try again.";
+            setTurnState("listening");
+            resolve();
+            return;
+          }
+
+          const mimeType = pttMediaRecorder.mimeType || "audio/webm";
+          const blob = new Blob(pttAudioChunks, { type: mimeType });
+          pttAudioChunks = [];
+          pttMediaRecorder = null;
+
+          if (blob.size < 500) {
+            statusEl.textContent = "⚠️ Too short — hold longer and speak clearly";
+            setTurnState("listening");
+            resolve();
+            return;
+          }
+
+          // Determine file extension from mime
+          let ext = "webm";
+          if (mimeType.includes("mp4")) ext = "mp4";
+          else if (mimeType.includes("ogg")) ext = "ogg";
+          else if (mimeType.includes("mpeg")) ext = "mp3";
+
+          try {
+            statusEl.textContent = "🤖 Whisper AI transcribing...";
+            const formData = new FormData();
+            formData.append("audio", blob, `recording.${ext}`);
+            formData.append("language", currentLanguage);
+
+            const sttResp = await fetch("/api/stt", { method: "POST", body: formData });
+            const sttData = await sttResp.json();
+            const transcribed = (sttData.text || "").trim();
+
+            if (transcribed && transcribed.length > 1) {
+              statusEl.textContent = `✅ Heard: "${transcribed}"`;
+              monitorSpeech.className = "monitor-speech-text hearing";
+              monitorSpeech.textContent = `"${transcribed}"`;
+              await handleUserSpeech(transcribed);
+            } else {
+              statusEl.textContent = "❓ Couldn't understand. Try again louder.";
+              setTurnState("listening");
+            }
+          } catch (err) {
+            console.error("STT fetch error:", err);
+            statusEl.textContent = "❌ Network error. Check connection.";
+            setTurnState("listening");
+          }
+          resolve();
+        };
+        pttMediaRecorder.stop();
+      });
+    }
+
+    // Speech Recognition with HARDWARE ECHO-LOCK (Desktop only)
     function startRecognitionSafely() {
-      if (!inCall || isSpeaking || isMuted) return;
+      if (!inCall || isSpeaking || isMuted || isMobile) return;
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return;
@@ -1275,7 +1446,11 @@
       } catch (err) {
         console.error("Chat error:", err);
         setTurnState("listening");
-        startRecognitionSafely();
+        if (!isMobile) startRecognitionSafely();
+        else {
+          const statusEl = document.getElementById("pttStatus");
+          if (statusEl) statusEl.textContent = "❌ Error. Try again — hold button to speak";
+        }
       }
     }
 
@@ -1310,7 +1485,12 @@
               if (inCall) {
                 isSpeaking = false;
                 setTurnState("listening");
-                startRecognitionSafely();
+                if (isMobile) {
+                  const statusEl = document.getElementById("pttStatus");
+                  if (statusEl) statusEl.textContent = "✅ Done — Hold button to ask another question";
+                } else {
+                  startRecognitionSafely();
+                }
               }
               resolve();
             }, 450);
@@ -1322,7 +1502,11 @@
               if (inCall) {
                 isSpeaking = false;
                 setTurnState("listening");
-                startRecognitionSafely();
+                if (!isMobile) startRecognitionSafely();
+                else {
+                  const statusEl = document.getElementById("pttStatus");
+                  if (statusEl) statusEl.textContent = "✅ Done — Hold button to speak";
+                }
               }
               resolve();
             }, 450);
@@ -1333,7 +1517,11 @@
         isSpeaking = false;
         if (inCall) {
           setTurnState("listening");
-          startRecognitionSafely();
+          if (!isMobile) startRecognitionSafely();
+          else {
+            const statusEl = document.getElementById("pttStatus");
+            if (statusEl) statusEl.textContent = "Hold button to speak";
+          }
         }
       }
     }

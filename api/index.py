@@ -3,6 +3,7 @@ import sys
 import re
 import time
 import base64
+import io
 from pathlib import Path
 from typing import List, Optional
 
@@ -11,7 +12,7 @@ CURRENT_DIR = Path(__file__).parent.resolve()
 if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import httpx
@@ -244,6 +245,76 @@ async def voice_turn(req: VoiceTurnRequest):
         "format": "audio/mp3",
         "latency_ms": latency_ms
     }
+
+@app.post("/api/stt")
+async def speech_to_text(
+    audio: UploadFile = File(...),
+    language: str = Form(default="bn")
+):
+    """
+    Mobile STT endpoint: Receives audio blob from MediaRecorder (webm/mp4/ogg),
+    sends to Groq Whisper large-v3, returns transcribed text.
+    Supports Bangla (bn) and English (en).
+    """
+    if not GROQ_API_KEY:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured")
+
+    try:
+        audio_bytes = await audio.read()
+        if not audio_bytes or len(audio_bytes) < 500:
+            return {"text": "", "language": language, "error": "Audio too short or empty"}
+
+        # Determine MIME type from upload
+        content_type = audio.content_type or "audio/webm"
+        filename = audio.filename or "audio.webm"
+        if "mp4" in content_type or "mp4" in filename:
+            mime = "audio/mp4"
+            ext = "mp4"
+        elif "ogg" in content_type or "ogg" in filename:
+            mime = "audio/ogg"
+            ext = "ogg"
+        elif "wav" in content_type or "wav" in filename:
+            mime = "audio/wav"
+            ext = "wav"
+        elif "mpeg" in content_type or "mp3" in filename:
+            mime = "audio/mpeg"
+            ext = "mp3"
+        else:
+            mime = "audio/webm"
+            ext = "webm"
+
+        # Groq Whisper transcription endpoint
+        groq_whisper_url = "https://api.groq.com/openai/v1/audio/transcriptions"
+        headers_whisper = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+        }
+
+        # Groq Whisper language codes: "bn" for Bangla, "en" for English
+        whisper_lang = "bn" if language in ["bn-BD", "bn", "bangla"] else "en"
+
+        files_data = {
+            "file": (f"audio.{ext}", io.BytesIO(audio_bytes), mime),
+            "model": (None, "whisper-large-v3"),
+            "language": (None, whisper_lang),
+            "response_format": (None, "json"),
+        }
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(groq_whisper_url, headers=headers_whisper, files=files_data)
+
+        if resp.status_code == 200:
+            data = resp.json()
+            transcribed = data.get("text", "").strip()
+            return {"text": transcribed, "language": whisper_lang, "chars": len(transcribed)}
+        else:
+            print(f"[Whisper STT Error] {resp.status_code}: {resp.text[:200]}", flush=True)
+            return {"text": "", "language": whisper_lang, "error": f"Whisper API error {resp.status_code}"}
+
+    except Exception as e:
+        print(f"[STT Exception] {e}", flush=True)
+        return {"text": "", "error": str(e)}
+
 
 @app.post("/v1/chat/completions")
 async def openai_compatible_chat(request: Request):
