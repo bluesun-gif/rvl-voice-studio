@@ -130,3 +130,55 @@ CRITICAL VOICE CONVERSATION RULES:
    - NEVER use markdown, asterisk (*), hashes (#), dashes (-), or bullet points.
    - Output plain spoken prose ONLY.
 """
+
+FALLBACK_KNOWLEDGE_QA = [
+    {
+        "keywords": ["অনলাইন", "অফলাইন", "ইন্টারনেট", "online", "offline", "internet", "সার্ভার ছাড়া"],
+        "bn": "আমাদের ভেরিফিকেশন সিস্টেমটি সম্পূর্ণ অফলাইনে কাজ করে। ইন্টারনেট সংযোগ ছাড়াই ভেরি কিউআর মোবাইল অ্যাপ দিয়ে যেকোনো ব্যাংক স্টেটমেন্ট বা ডকুমেন্টের ভি ডি এস সিল মাত্র ৫ সেকেন্ডে শতভাগ নির্ভুলভাবে যাচাই করা যায়।",
+        "en": "Our verification system operates completely offline. Using the VeriQR app, VDS seals on bank statements and documents can be verified in under 5 seconds without requiring any internet connection."
+    },
+    {
+        "keywords": ["ভিডিএস", "ভি ডি এস", "vds", "visible digital seal", "ডিজিটাল সিল", "ভেজিটেবিল"],
+        "bn": "ভিজিবল ডিজিটাল সিল বা ভি ডি এস হলো ব্যাংক স্টেটমেন্ট ও আর্থিক সনদের জন্য একটি ক্রিপ্টোগ্রাফিক ডিজিটাল সিল, যা ডকুমেন্ট জালিয়াতি সম্পূর্ণ বন্ধ করে এবং ৫ সেকেন্ডে যাচাই করা যায়।",
+        "en": "Visible Digital Seal (VDS) is a high-security cryptographic 2D digital seal that completely eliminates document tampering on bank statements and solvency certificates."
+    },
+    {
+        "keywords": ["ভেরি কিউআর", "ভেরিকিউআর", "veriqr", "স্ক্যান", "মোবাইল অ্যাপ"],
+        "bn": "ভেরি কিউআর হলো আমাদের মোবাইল অ্যাপ, যার মাধ্যমে ইন্টারনেট ছাড়াই যেকোনো ব্যাংক স্টেটমেন্ট বা সার্টিফিকেটের ভি ডি এস ডিজিটাল সিল স্ক্যান করে তাৎক্ষণিক সত্যতা যাচাই করা যায়।",
+        "en": "VeriQR is our mobile verification app for iOS and Android that validates VDS seals offline in under 5 seconds without accessing a central server."
+    },
+    {
+        "keywords": ["ওয়ানআইডি", "ওয়ান আইডি", "oneid", "সার্টিফিকেট", "বোর্ড", "vault", "ডিজিলকার", "ডিজিটাল ভল্ট"],
+        "bn": "ওয়ানআইডি ওয়ালেট হলো বাংলাদেশের জাতীয় ডিজিটাল ভল্ট, যেখানে নাগরিক এবং শিক্ষার্থীরা কোনোপ্রকার সত্যায়ন ছাড়াই তাদের এসএসসি, এইচএসসি ও ডিগ্রির সার্টিফিকেট নিরাপদে সংরক্ষণ ও শেয়ার করতে পারেন।",
+        "en": "OneID Wallet is Bangladesh's national digital credential vault, allowing citizens and students to store and share verified educational certificates attestation-free."
+    },
+    {
+        "keywords": ["ঠিকানা", "অফিস", "কোথায়", "যোগাযোগ", "address", "location", "office", "contact", "ফোন", "নাম্বার"],
+        "bn": "রিলিফ ভ্যালিডেশন লিমিটেডের প্রধান কার্যালয় গুলশান-১, ঢাকার রংস এফসি স্কয়ারের লেভেল-৫ এ অবস্থিত। আমাদের সাথে যোগাযোগের হটলাইন নম্বর ০৯৬০৬৫০১২৩১।",
+        "en": "Relief Validation Limited headquarters is located at Rangs FC Square, Level-5, Gulshan-1, Dhaka-1212. You can contact us at +8809606501231."
+    },
+    {
+        "keywords": ["লাইসেন্স", "আইন", "আইসিটি", "ict", "cca", "কর্তৃপক্ষ", "অনুমোদন"],
+        "bn": "রিলিফ ভ্যালিডেশন লিমিটেড বাংলাদেশ সরকারের তথ্যপ্রযুক্তি আইন ২০০৬-এর অধীনে নিয়ন্ত্রক সংস্থা সিসিএ কর্তৃক লাইসেন্সপ্রাপ্ত একটি অনুমোদিত সার্টিফাইং অথরিটি।",
+        "en": "Relief Validation Limited is an authorized Certifying Authority (CA) licensed by the Government of Bangladesh under the ICT Act 2006, regulated by the CCA."
+    },
+    {
+        "keywords": ["ডিজিপে", "dgepay", "টালি", "খাতা", "পেমেন্ট", "মার্চেন্ট"],
+        "bn": "ডিজিপে সার্ভিসেস লিমিটেড হলো আমাদের সহযোগী ফিনটেক প্ল্যাটফর্ম, যা খুচরা ব্যবসায়ী ও মার্চেন্টদের জন্য ডিজিটাল লেনদেন এবং টালিখাতা স্বয়ংক্রিয় করার সুবিধা প্রদান করে।",
+        "en": "DGePay Services Limited is our allied fintech platform offering merchant digital payments and Tally Khata bookkeeping automation."
+    }
+]
+
+def get_smart_fallback(query: str, lang: str = "bn") -> str:
+    if not query:
+        return "রিলিফ ভ্যালিডেশন লিমিটেডে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সহায়তা করতে পারি?" if lang == "bn" else "Welcome to Relief Validation Limited. How may I assist you today?"
+    
+    q_lower = query.lower()
+    for item in FALLBACK_KNOWLEDGE_QA:
+        for kw in item["keywords"]:
+            if kw.lower() in q_lower:
+                return item["bn"] if lang == "bn" else item["en"]
+                
+    if lang == "bn":
+        return "রিলিফ ভ্যালিডেশন লিমিটেড তথ্যপ্রযুক্তি আইন ২০০৬-এর অধীনে লাইসেন্সপ্রাপ্ত সিএ। আমরা ভি ডি এস ও ভেরি কিউআর দিয়ে ডকুমেন্টের শতভাগ নিরাপত্তা নিশ্চিত করি।"
+    return "Relief Validation Limited is a Licensed Certifying Authority under the ICT Act 2006, providing VDS and VeriQR solutions for document fraud prevention."

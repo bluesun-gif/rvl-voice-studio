@@ -18,7 +18,7 @@ import httpx
 import edge_tts
 
 from bangla_normalizer import normalize_bangla_for_tts
-from knowledge_base import RVL_PROMPT_KNOWLEDGE_TEXT, SYSTEM_VOICE_INSTRUCTIONS
+from knowledge_base import RVL_PROMPT_KNOWLEDGE_TEXT, SYSTEM_VOICE_INSTRUCTIONS, get_smart_fallback
 
 # ── App & Middleware ─────────────────────────────────────────────────────────
 app = FastAPI(
@@ -90,26 +90,48 @@ async def query_groq(model_name: str, messages: list, max_tokens: int = 220) -> 
     }
     target_model = groq_models.get(model_name, "qwen/qwen3.8-27b")
 
-    payload = {
-        "model": target_model,
-        "messages": messages,
-        "max_tokens": max_tokens,
-        "temperature": 0.5
-    }
+    # Extract last user query for smart fallback
+    last_user_query = ""
+    for m in reversed(messages):
+        if isinstance(m, dict) and m.get("role") == "user":
+            last_user_query = m.get("content", "")
+            break
+        elif hasattr(m, "role") and m.role == "user":
+            last_user_query = m.content
+            break
+
+    has_bangla = bool(re.search(r'[\u0980-\u09FF]', last_user_query))
+    lang = "bn" if has_bangla else "en"
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
     }
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(GROQ_URL, json=payload, headers=headers)
-        if resp.status_code == 200:
-            data = resp.json()
-            raw = data["choices"][0]["message"].get("content", "")
-            return clean_reply(raw)
-        else:
-            raise HTTPException(status_code=resp.status_code, detail=f"Groq API Error: {resp.text}")
+    # Strategy 1: Candidate models cascade
+    candidate_models = [target_model, "llama-3.1-8b-instant"]
+    for cand in candidate_models:
+        payload = {
+            "model": cand,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": 0.5
+        }
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post(GROQ_URL, json=payload, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data["choices"][0]["message"].get("content", "")
+                    cleaned = clean_reply(raw)
+                    if cleaned and len(cleaned) > 10:
+                        return cleaned
+        except Exception as e:
+            print(f"[Groq Attempt Failed for {cand}]: {e}", flush=True)
+
+    # Strategy 2: Instant Smart Corporate Knowledge Matcher
+    return get_smart_fallback(last_user_query, lang=lang)
 
 async def synthesize_speech_in_memory(text: str, voice: str, rate: str = "+8%", pitch: str = "+0Hz") -> bytes:
     # Phonetic normalizer for Bangla pronunciation

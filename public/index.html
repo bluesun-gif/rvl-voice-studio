@@ -913,18 +913,18 @@
     const PROMPTS = {
       rvl_corporate: {
         bn: {
-          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. The caller is speaking in Bangla. Reply strictly in polite, natural Dhaka Bangla in 1 to 2 spoken sentences so the caller can respond naturally. Never output markdown or internal thoughts.",
+          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. CRITICAL: Verification via VeriQR is 100% OFFLINE and requires NO internet or central database connection. The caller is speaking in Bangla. Reply strictly in polite, natural Dhaka Bangla in 1 to 2 spoken sentences so the caller can respond naturally. Never output markdown or internal thoughts.",
           greeting: "রিলিফ ভ্যালিডেশন লিমিটেডে আপনাকে স্বাগতম। আমি কীভাবে আপনাকে সহায়তা করতে পারি?"
         },
         en: {
-          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. Reply strictly in crisp, professional corporate English in 1 to 2 spoken sentences so the caller can respond. Never output markdown or thoughts.",
+          system: "You are the official bilingual AI voice representative for Relief Validation Limited (RVL) on a phone call. Relief Validation Limited is a Licensed Certifying Authority (CA) of the Government of Bangladesh under the ICT Act 2006, headquartered at Gulshan-1, Dhaka, and part of the Deepon Group ecosystem alongside DGePay and DigiInfotech. Our flagship solutions are VDS (Visible Digital Seal) for tamper-proof bank statements and document fraud prevention, and OneID Wallet for national digital certificates. CRITICAL: Verification via VeriQR is 100% OFFLINE without central database access. Reply strictly in crisp, professional corporate English in 1 to 2 spoken sentences so the caller can respond. Never output markdown or thoughts.",
           greeting: "Welcome to Relief Validation Limited, licensed Certifying Authority of Bangladesh. How may I assist you today?"
         }
       },
       vds_banking: {
         bn: {
-          system: "You are the Senior Banking Solutions Advisor for Relief Validation Limited on a voice call with a bank executive. You specialize in VDS (Visible Digital Seal) and VeriQR. Explain how VDS stops bank solvency certificate forgery, secures loan sanction letters, and enables 5-second offline verification. Reply in natural Dhaka Bangla in 1 to 2 spoken sentences.",
-          greeting: "আসসালামু আলাইকুম। রিলিফ ভ্যালিডেশনের ব্যাংকিং সিকিউরিটি ডেস্ক থেকে বলছি। ভিডিসি ডিজিটাল সিল নিয়ে কীভাবে সহায়তা করতে পারি?"
+          system: "You are the Senior Banking Solutions Advisor for Relief Validation Limited on a voice call with a bank executive. You specialize in VDS (Visible Digital Seal) and VeriQR. Explain how VDS stops bank solvency certificate forgery, secures loan sanction letters, and enables 5-second 100% offline verification. Reply in natural Dhaka Bangla in 1 to 2 spoken sentences.",
+          greeting: "আসসালামু আলাইকুম। রিলিফ ভ্যালিডেশনের ব্যাংকিং সিকিউরিটি ডেস্ক থেকে বলছি। ভি ডি এস ডিজিটাল সিল নিয়ে কীভাবে সহায়তা করতে পারি?"
         },
         en: {
           system: "You are the Senior Banking Solutions Advisor for Relief Validation Limited on a voice call with a bank executive. You specialize in VDS (Visible Digital Seal) and VeriQR. Explain how VDS stops bank solvency certificate forgery, secures loan sanction letters, and enables 5-second offline verification under the ICT Act 2006. Reply in crisp corporate English in 1 to 2 sentences.",
@@ -1267,7 +1267,7 @@
         headerLatency.textContent = `⚡ Latency: ${totalRoundtrip}ms (${data.provider})`;
         headerLatency.style.color = totalRoundtrip < 1200 ? "#34d399" : "#38bdf8";
 
-        const reply = data.reply || (currentLanguage === "bn-BD" ? "রিলিফ ভ্যালিডেশন লিমিটেড সর্বদা আপনার সেবায় প্রস্তুত।" : "Relief Validation Limited is ready to assist you.");
+        const reply = data.reply || (currentLanguage === "bn-BD" ? "আমাদের ভেরিফিকেশন সিস্টেমটি সম্পূর্ণ অফলাইন, ভেরি কিউআর অ্যাপ দিয়ে ইন্টারনেট ছাড়াই ৫ সেকেন্ডে যাচাই করা যায়।" : "Our verification system operates 100% offline via the VeriQR app in under 5 seconds.");
         addTranscript("agent", reply);
         chatHistory.push({ role: "assistant", content: reply });
 
