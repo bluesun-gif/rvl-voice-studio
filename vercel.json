@@ -14,8 +14,20 @@
       "destination": "/public/hermes.html"
     },
     {
+      "source": "/hermes/",
+      "destination": "/public/hermes.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/public/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/hermes",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     }
   ]
 }
